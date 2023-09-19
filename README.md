@@ -1,0 +1,2 @@
+# Performance Commitment Review System
+A simple system designed to facilitate and streamline the process of evaluating and managing employee performance within the Batangas State University. Its primary purpose is to enhance the performance management process by providing a centralized and efficient platform for conducting performance reviews, setting goals, giving feedback, and tracking progress.
