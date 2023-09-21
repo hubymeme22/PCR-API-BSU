@@ -42,3 +42,30 @@ def adminAccountWithID(id):
         },
         'error': None
     })
+
+# creates a new account for PMT
+def adminCreateAccountPMT():
+    accountDetails = request.get_json(force=True)
+    return jsonify({
+        'created': True,
+        'permission': 'pmt',
+        'error': None
+    })
+
+# creates a new account for office head
+def adminCreateAccountHead():
+    accountDetails = request.get_json(force=True)
+    return jsonify({
+        'created': True,
+        'permission': 'head',
+        'error': None
+    })
+
+# creates a new account for office individuals
+def adminCreateAccountIndiv():
+    accountDetails = request.get_json(force=True)
+    return jsonify({
+        'created': True,
+        'permission': 'indiv',
+        'error': None
+    })

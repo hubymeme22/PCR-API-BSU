@@ -30,13 +30,16 @@ def adminlogin():
     return LoginRoutes.adminLogin()
 
 @app.route('/admin/account/create/pmt', methods=['POST'])
-def adminCreateAccountPMT(): return '{}'
+def adminCreateAccountPMT():
+    return Routes.adminCreateAccountPMT()
 
 @app.route('/admin/account/create/head', methods=['POST'])
-def adminCreateAccountHead(): return '{}'
+def adminCreateAccountHead():
+    return Routes.adminCreateAccountHead()
 
 @app.route('/admin/account/create/indiv', methods=['POST'])
-def adminCreateAccountIndiv(): return '{}'
+def adminCreateAccountIndiv():
+    return Routes.adminCreateAccountIndiv()
 
 ################################
 #  Head routes implementation  #
