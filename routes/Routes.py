@@ -9,7 +9,7 @@
     Happy coding :>
     - Hubert
 '''
-from flask import jsonify
+from flask import jsonify, request
 
 def root():
     return jsonify({
@@ -17,4 +17,28 @@ def root():
         'api_routes': {
             '/': 'contains the welcome message'
         }
+    })
+
+# returns all the account info from the database
+# excluding the password
+def adminAccount():
+    return jsonify({
+        'data': [{
+            '_id': '0aec3b21ea123',
+            'username': 'juandelacruz',
+            'permission': 'head'
+        }],
+        'error': None
+    })
+
+# returns the account info from the database where user
+# having the spcified id
+def adminAccountWithID(id):
+    return jsonify({
+        'data': {
+            '_id': '0aec3b21ea123',
+            'username': 'juandelacruz',
+            'permission': 'head'
+        },
+        'error': None
     })

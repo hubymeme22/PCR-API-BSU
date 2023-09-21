@@ -1,5 +1,6 @@
 {
     "python.analysis.extraPaths": [
-        "./routes"
+        "./routes",
+        "./modules"
     ]
 }
