@@ -1,9 +1,8 @@
-import sys
-sys.path.append('../modules')
-
 from flask import jsonify, request
-import ErrorGen
+from app.modules import ErrorGen
+from app import app
 
+@app.route('/admin/login')
 def adminLogin():
     jsonData = request.get_json(force=True)
     if (not jsonData): return ErrorGen.invalidRequestError()
