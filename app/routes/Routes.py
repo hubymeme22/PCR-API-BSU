@@ -11,7 +11,9 @@
 '''
 from flask import jsonify, request
 from app import app
-from app.models import Accounts
+from app.database.models import Accounts
+from app.database.models import Campus, Office
+
 
 @app.route("/")
 def root():
@@ -99,6 +101,8 @@ def adminCreateAccountHead():
     })
 
 
+
+
 # creates a new account for office individuals
 @app.route('/admin/account/create/indiv', methods=['POST'])
 def adminCreateAccountIndiv():
@@ -117,3 +121,68 @@ def adminCreateAccountIndiv():
         'permission': 'indv',
         'error': None
     })
+    
+# creates a new campus
+@app.route('/admin/create/campus', methods=['POST'])
+def adminCreatecampus():
+    campusDetails = request.get_json(force=True)
+    name = campusDetails['name']
+    offices = campusDetails['offices']
+    
+    listOfOffices =[]
+    for office_name, office_data in offices.items():  # Iterate through dictionary items
+        office_name = office_data['name']             # key and value
+        head_id = office_data['head']
+        opcr_id = office_data.get('opcr_id', [])
+        
+        head = Accounts.objects(id=head_id).first()
+
+        if head:
+            office = Office(name=office_name, head=head, opcr_ids=opcr_id)
+            listOfOffices.append(office)
+        else:
+            return jsonify({'error': 'Account not found'}), 404
+
+    new_campus = Campus(name=name, offices=offices)
+    new_campus.save()
+    
+    return jsonify({
+        'id': str(new_campus.id),
+        'name': str(new_campus.name),
+        'created': True,
+        'error': None
+    }), 201
+
+# returns the campus info from the database
+@app.route('/admin/get/<string:campus_id>')
+def adminGetCampus(campus_id):
+    campus = Campus.objects(id=campus_id).first()
+    if campus:
+        data = {
+        'data': campus.to_json(),
+        'error': None
+        }
+        return data
+    else:
+        return jsonify({'error': 'Campus not found'}), 404
+
+# returns all the campuses info from the database
+@app.route('/admin/get/all-campuses', methods=['GET'])
+def adminGetAllCampuses():
+    campuses = Campus.objects().all()
+    campus_list = [campus.to_json() for campus in campuses]
+    data = {
+        'data': campus_list,
+        'error': None
+    }
+    return data
+
+# deletes a campus by ID
+@app.route('/admin/delete/campus/<string:campus_id>', methods=['DELETE'])
+def adminDeleteCampus(campus_id):
+    campus = Campus.objects(id=campus_id).first()
+    if campus:
+        campus.delete()
+        return jsonify({'message': 'Campus deleted successfully'}), 200
+    else:
+        return jsonify({'error': 'Campus not found'}), 404

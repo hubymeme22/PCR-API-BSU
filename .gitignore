@@ -3,3 +3,4 @@ venv
 app/__pycache__
 routes/__pycache__
 .env
+rest.http
