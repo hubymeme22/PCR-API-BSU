@@ -186,3 +186,48 @@ def adminDeleteCampus(campus_id):
         return jsonify({'message': 'Campus deleted successfully'}), 200
     else:
         return jsonify({'error': 'Campus not found'}), 404
+    
+
+# updates an existing campus document
+# can modify campus fields and office fields.
+@app.route('/admin/edit/campus/<string:campus_id>', methods=['PUT'])
+def adminEditCampus(campus_id):
+    campusDetails = request.get_json(force=True)
+
+    campus = Campus.objects(id=campus_id).first()
+
+    if campus:
+        # Checks if the 'name' field is provided in the request
+        if 'name' in campusDetails:
+            campus.name = campusDetails['name']
+
+        # Checks if the 'offices' field is provided in the request
+        if 'offices' in campusDetails:
+            updated_offices = campusDetails['offices']
+
+            for office_name, office_data in updated_offices.items():
+                if office_name in campus.offices:
+                    office = campus.offices[office_name]
+                    if 'name' in office_data:
+                        office.name = office_data['name']
+                    if 'head' in office_data:
+                        head_id = office_data['head']
+                        head = Accounts.objects(id=head_id).first()
+                        if head:
+                            office.head = head
+                        else:
+                            return jsonify({'error': 'head', 'office': f'{office_name}'}), 404     # 'head' account doesn't exist in the Account collection
+                    if 'opcr_ids' in office_data:
+                        office.opcr_ids = office_data['opcr_ids']
+                else:
+                    return jsonify({'error': f'key: {office_name}'}), 400   # key in the request is not recognized.
+
+        campus.save()
+        return jsonify({
+            'id': str(campus.id),
+            'name': str(campus.name),
+            'updated': True,
+            'error': None
+        }), 200
+    else:
+        return jsonify({'error': 'Campus not found'}), 404
