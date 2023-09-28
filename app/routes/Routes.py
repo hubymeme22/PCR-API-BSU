@@ -11,7 +11,7 @@
 '''
 from flask import jsonify, request
 from app import app
-from app.models import Accounts
+from app.database.models import Accounts
 
 @app.route("/")
 def root():
