@@ -1,18 +1,26 @@
-from flask import jsonify, request
+from app.database.models import Accounts
 from app.modules import ErrorGen
+from flask import request
 from app import app
 
-@app.route('/admin/login')
-def adminLogin():
+@app.route('/login', methods=['POST'])
+def login():
     jsonData = request.get_json(force=True)
     if (not jsonData): return ErrorGen.invalidRequestError()
 
     username = jsonData['username']
     password = jsonData['password']
-    # match username and password from the database here...
 
-    return jsonify({
+    account = Accounts.objects(username=username, password=password).first()
+    if (account == None):
+        return {
+            'loggedin': False,
+            'token': None,
+            'error': 'NonexistentAccount'
+        }
+
+    return {
         'loggedin': True,
-        'token': '0a1b2c3d4e5f67890',
+        'token': '',
         'error': None
-    })
+    }
