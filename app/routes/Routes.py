@@ -9,7 +9,7 @@
     Happy coding :>
     - Hubert
 '''
-from app.modules import Admin, PMT
+from app.modules import Admin, PMT, Head
 from app import app
 
 @app.route("/")
@@ -24,7 +24,7 @@ def root():
 ############################################
 #   Admin functionalities implementation   #
 ############################################
-@app.route('/api/admin/accounts')
+@app.route('/api/admin/accounts/')
 def adminAccount():
     return Admin.adminAccount()
 
@@ -40,10 +40,13 @@ def adminCreateAccountPMT():
 def adminCreateAccountHead():
     return Admin.adminCreateAccountHead()
 
-@app.route('/api/admin/create/indiv', methods=['POST'])
+@app.route('/api/admin/create/individual', methods=['POST'])
 def adminCreateAccountIndiv():
     return Admin.adminCreateAccountIndiv()
 
+@app.route('/api/admin/create/campus', methods=['POST'])
+def adminCreateCampus():
+    return Admin.adminCreateCampus()
 
 ##########################################
 #   PMT functionalities implementation   #
@@ -77,3 +80,10 @@ def get_campus():
 @app.route('/api/pmt/get/campus/<id>', methods = ['GET'])
 def campus_by_id(id):
     return PMT.campus_by_id(id)
+
+###########################################
+#   Head functionalities implementation   #
+###########################################
+@app.route('/api/head/create/opcr', methods=['POST'])
+def createHeadOPCR():
+    return Head.createOPCR()
