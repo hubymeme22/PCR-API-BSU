@@ -1,5 +1,6 @@
 from flask import request
-from app.database.models import Accounts
+from app.database.models import Accounts, Campuses
+from app.modules import ErrorGen
 import json
 
 # returns all the account info from the database
@@ -23,6 +24,13 @@ def adminAccountWithID(id):
 # creates a new account for PMT
 def adminCreateAccountPMT():
     accountDetails = request.get_json(force=True)
+    missedParams = ErrorGen.parameterCheck(
+        requiredParams=['name', 'username', 'email', 'password'],
+        jsonRequest=accountDetails)
+
+    if (len(missedParams) > 0):
+        return ErrorGen.invalidRequestError(error=f'MissedParams={missedParams}')
+
     new_account = Accounts(
         name = accountDetails['name'],
         username=accountDetails['username'],
@@ -42,7 +50,14 @@ def adminCreateAccountPMT():
 
 # creates a new account for office head
 def adminCreateAccountHead():
-    accountDetails = request.get_json(force=True)    
+    accountDetails = request.get_json(force=True)
+    missedParams = ErrorGen.parameterCheck(
+        requiredParams=['name', 'username', 'email', 'password'],
+        jsonRequest=accountDetails)
+
+    if (len(missedParams) > 0):
+        return ErrorGen.invalidRequestError(error=f'MissedParams={missedParams}')
+
     new_account = Accounts(
         name = accountDetails['name'],
         username=accountDetails['username'],
@@ -61,7 +76,14 @@ def adminCreateAccountHead():
 
 # creates a new account for office individuals
 def adminCreateAccountIndiv():
-    accountDetails = request.get_json(force=True)    
+    accountDetails = request.get_json(force=True)
+    missedParams = ErrorGen.parameterCheck(
+        requiredParams=['name', 'username', 'email', 'password', 'superior'],
+        jsonRequest=accountDetails)
+
+    if (len(missedParams) > 0):
+        return ErrorGen.invalidRequestError(error=f'MissedParams={missedParams}')
+
     new_account = Accounts(
         name = accountDetails['name'],
         username=accountDetails['username'],
@@ -74,5 +96,24 @@ def adminCreateAccountIndiv():
         'id': str(new_account.id),
         'created': True,
         'permission': 'indv',
+        'error': None
+    }
+
+# creates and registers new campus
+def adminCreateCampus():
+    campusDetails = request.get_json(force=True)
+    missedParams = ErrorGen.parameterCheck(
+        requiredParams=['name', 'offices'],
+        jsonRequest=campusDetails)
+
+    if (len(missedParams) > 0):
+        return ErrorGen.invalidRequestError(error=f'MissedParams={missedParams}')
+
+    newCampus = Campuses(**campusDetails)
+    newCampus.save()
+
+    return {
+        'id': str(newCampus.id),
+        'created': True,
         'error': None
     }
