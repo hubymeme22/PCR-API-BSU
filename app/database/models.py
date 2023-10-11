@@ -1,4 +1,4 @@
-from mongoengine import Document, EmbeddedDocument, EmbeddedDocumentField, StringField, IntField, FloatField, ListField, DictField, BooleanField
+from mongoengine import Document, EmbeddedDocument, EmbeddedDocumentField, StringField, IntField, FloatField, ListField, DateField, BooleanField
 
 class Accounts(Document):
     name = StringField(max_length=50, required=True)    
@@ -6,8 +6,13 @@ class Accounts(Document):
     username = StringField(max_length=50, required=True)
     password = StringField(max_length=50, required=True)
     permission = StringField(max_length=50, required=True)
-    superior = StringField()
+    superior = StringField(default='', required=False)
 
+class Sessions(Document):
+    userid = StringField(max_length=30, required=True)
+    token = StringField(max_length=50, required=True)
+    permission = StringField(max_length=50, required=True)
+    expiration = DateField()
 
 # OPCR model
 class _success(EmbeddedDocument):
@@ -25,7 +30,7 @@ class Targets(EmbeddedDocument):
 
 class OPCR(Document):
     targets = ListField(EmbeddedDocumentField(Targets))
-    accepted = BooleanField()
+    accepted = BooleanField(default=False)
     owner = StringField()
 
 
@@ -38,4 +43,3 @@ class _offices(EmbeddedDocument):
 class Campuses(Document):
     name = StringField()
     offices = ListField(EmbeddedDocumentField(_offices))
-

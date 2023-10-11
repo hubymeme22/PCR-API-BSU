@@ -1,3 +1,4 @@
 flask
 mongoengine
 python-dotenv
+uuid

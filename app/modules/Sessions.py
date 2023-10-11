@@ -1,0 +1,60 @@
+from app.database.models import Sessions, Accounts
+from app.modules import ErrorGen
+from datetime import datetime, timedelta
+from uuid import uuid4
+import json
+
+# stores the session on the database
+def login(email, password):
+    userlogin = Accounts.objects(email=email, password=password).first()
+    if (userlogin == None):
+        return ({
+            'error': 'NonexistentAccount',
+            'loggedIn': False,
+            'token': ''
+        }, 401)
+
+    userlogin = json.loads(userlogin.to_json())
+    generatedToken = str(uuid4())
+
+    session = Sessions(
+        userid=userlogin['_id']['$oid'],
+        token=generatedToken,
+        permission=userlogin['permission'],
+        expiration=datetime.now() + timedelta(hours=1))
+
+    session.save()
+    return {
+        'error': None,
+        'loggedIn': True,
+        'token': generatedToken,
+    }
+
+# retrieves the user session information based on token
+def getSessionInfo(token):
+    session = Sessions.objects(token=token).first()
+    if (session == None): return
+    return session
+
+# retrieves and refreshes by returning new token
+def refreshToken(token):
+    session = Sessions.objects(token=token).first()
+    if (session == None): return ErrorGen.invalidRequestError(
+        error='NonexistentToken',
+        statusCode=401)
+
+    generatedToken = str(uuid4())
+    session = session.to_json()
+
+    session = Sessions(
+        userid=session['userid'],
+        token=generatedToken,
+        permission=session['permission'],
+        expiration=datetime.now() + timedelta(hours=1))
+    session.save()
+
+    # delete the old token here...
+    return {
+        'error': None,
+        'newtoken': generatedToken
+    }
