@@ -48,6 +48,10 @@ def adminCreateAccountIndiv():
 def adminCreateCampus():
     return Admin.adminCreateCampus()
 
+@app.route('/api/admin/assign/campus', methods=['POST'])
+def adminAssignPmtCampus():
+    return Admin.adminAssignPmtCampus()
+
 ##########################################
 #   PMT functionalities implementation   #
 ##########################################
