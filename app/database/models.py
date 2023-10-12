@@ -43,3 +43,4 @@ class _offices(EmbeddedDocument):
 class Campuses(Document):
     name = StringField()
     offices = ListField(EmbeddedDocumentField(_offices))
+    pmt = ListField(StringField())
