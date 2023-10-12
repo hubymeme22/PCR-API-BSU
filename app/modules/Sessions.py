@@ -32,8 +32,10 @@ def login(email, password):
 
 # retrieves the user session information based on token
 def getSessionInfo(token):
+    if (token == None): return None
     session = Sessions.objects(token=token).first()
-    if (session == None): return
+
+    if (session == None): return None
     return session
 
 # retrieves and refreshes by returning new token
