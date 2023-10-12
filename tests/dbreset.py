@@ -1,10 +1,9 @@
 import sys
 sys.path.append('..')
 
-from app.database.models import Accounts, OPCR
+from app.database.models import Accounts, OPCR, Campuses, Sessions
 from mongoengine import connect
 from dotenv import load_dotenv
-import requests
 import os
 
 load_dotenv()
@@ -19,6 +18,14 @@ def dbReset():
         print('[*] Dropping OPCR collection...')
         OPCR.drop_collection()
         print('[+] Dropping Accounts collection... ok')
+
+        print('[*] Dropping Campuses collection...')
+        Campuses.drop_collection()
+        print('[+] Dropping Campuses collection... ok')
+
+        print('[*] Dropping Sesssions collection...')
+        Sessions.drop_collection()
+        print('[+] Dropping Sessions collection... ok')
 
         print('[*] Appending default admin credentials...')
         Accounts(

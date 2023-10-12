@@ -76,7 +76,6 @@ print('ADMIN TESTING STARTED')
 print('======================')
 
 # admin login test
-print('[*] Logging in admin account')
 response = requests.post(f'{url}/login', json={'email': 'admin', 'password': 'admin'})
 
 if (response.status_code == 200):
@@ -87,7 +86,6 @@ else:
     interrupt()
 
 # testing for account creation
-print('[*] Testing admin account creation...')
 for i in range(len(sampleAccounts)):
     response = requests.post(f'{url}/api/admin/create/{sampleAccounts[i]["permission"]}', json=sampleAccounts[i])
     if (response.status_code == 200):
@@ -98,10 +96,9 @@ for i in range(len(sampleAccounts)):
     interrupt()
 
 # test to retrieve all the accounts on admin side
-print('[*] Testing admin\'s account retrieval...')
 response = requests.get(f'{url}/api/admin/accounts/')
 if (response.status_code == 200):
-    print('[+] Account retrieval... success')
+    print('[+] Account retrieval... ok')
     accountData: list = response.json()
 else:
     print('[-] Account retrieval... failed')
@@ -113,16 +110,14 @@ accounts = accountData['data']
 headAccount = None
 
 # finding the first registered head
-print('[*] Retrieving head account...')
 for acc in accounts:
     if (acc['permission'] == 'head'):
-        print(f'[+] Head account found with id of: {acc["_id"]["$oid"]}')
+        print(f'[+] Head account found with id of: {acc["_id"]["$oid"]}... ok')
         headAccount = acc
         break
 
 if (headAccount != None):
     headID = headAccount['_id']['$oid']
-    print('[*] Assigning head to individual account...')
 
     # individual account creation
     response = requests.post(
@@ -136,9 +131,9 @@ if (headAccount != None):
     })
 
     if (response.status_code == 200):
-        print('[+] Individual account created!')
+        print('[+] Individual account creation... ok')
     else:
-        print('[-] Individual account not created')
+        print('[-] Individual account creation... failed')
         interrupt()
 
     # campus creation and assigning head
@@ -150,16 +145,36 @@ if (headAccount != None):
         }]
     })
 
-    print('[*] Creating new campus...')
     response = requests.post(f'{url}/api/admin/create/campus', json=sampleCampus)
-    print(response.content)
+
     if (response.status_code == 200):
-        print('[+] New Campus created!')
+        print('[+] New Campus creation... ok')
     else:
-        print(response.json())
-        print('[-] Campus not added!')
+        print('[-] New Campus creation... failed')
         interrupt()
 
 else:
-    print('[-] No head id retrieved')
+    print('[-] No head id retrieved... failed')
+    interrupt()
+
+
+# finding the first pmt account from the list
+pmtAccount = None
+for acc in accounts:
+    if (acc['permission'] == 'pmt'):
+        print(f'[+] PMT account found with id of: {acc["_id"]["$oid"]}... ok')
+        pmtAccount = acc
+        break
+
+# assign the pmt to the sample campus
+response = requests.post(f'{url}/api/admin/assign/campus', json={
+    'campus': sampleCampus['name'],
+    'pmtid': pmtAccount['_id']['$oid']
+})
+
+if (response.status_code == 200):
+    print('[+] PMT Campus assigning... ok')
+else:
+    print('[+] PMT Campus assigning... failed')
+    print(response.content)
     interrupt()
