@@ -101,7 +101,7 @@ def adminCreateAccountIndiv():
 
 # creates and registers new campus
 def adminCreateCampus():
-    campusDetails = request.get_json(force=True)
+    campusDetails: dict = request.get_json(force=True)
     missedParams = ErrorGen.parameterCheck(
         requiredParams=['name', 'offices'],
         jsonRequest=campusDetails)
@@ -109,11 +109,41 @@ def adminCreateCampus():
     if (len(missedParams) > 0):
         return ErrorGen.invalidRequestError(error=f'MissedParams={missedParams}')
 
+    # initialize the list of pmt ids as empty
+    campusDetails.update({'pmt': []})
     newCampus = Campuses(**campusDetails)
     newCampus.save()
 
     return {
         'id': str(newCampus.id),
         'created': True,
+        'error': None
+    }
+
+# assigns the pmt to a specific campus
+def adminAssignPmtCampus():
+    campusDetails = request.get_json(force=True)
+    missedParams = ErrorGen.parameterCheck(
+        requiredParams=['campus', 'pmtid'],
+        jsonRequest=campusDetails)
+
+    if (len(missedParams) > 0):
+        return ErrorGen.invalidRequestError(error=f'MissedParams={missedParams}')
+
+    # checks if the pmt has already campus assigned
+    otherCampuses = Campuses.objects(pmt__in=campusDetails['pmtid']).first()
+    if (otherCampuses != None):
+        return ErrorGen.invalidRequestError(error='CampusAlreadyAssigned', statusCode=403)
+
+    # assign the pmt to campus
+    otherCampuses = Campuses.objects(name=campusDetails['campus']).first()
+    if (otherCampuses == None):
+        return ErrorGen.invalidRequestError(error='NonexistentCampus', statusCode=403)
+
+    otherCampuses.pmt.append(campusDetails['pmtid'])
+    otherCampuses.save()
+
+    return {
+        'data': otherCampuses.to_json(),
         'error': None
     }
