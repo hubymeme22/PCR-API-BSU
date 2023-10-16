@@ -71,6 +71,7 @@ dbreset.dbReset()
 ###################
 #  admin testing  #
 ###################
+print()
 print('======================')
 print('ADMIN TESTING STARTED')
 print('======================')
@@ -177,4 +178,54 @@ if (response.status_code == 200):
 else:
     print('[+] PMT Campus assigning... failed')
     print(response.content)
+    interrupt()
+
+
+##########################
+#   office head testing  #
+##########################
+print()
+print('====================')
+print('HEAD TESTING STARTED')
+print('====================')
+
+response = requests.post(f'{url}/login', json={'email': 'samplehead@gmail.com', 'password': '123abc'})
+if (response.status_code == 200):
+    print('[+] Head login successful')
+    headtoken = response.json().get('token')
+else:
+    print('[-] Head login not successful')
+    interrupt()
+
+# new opcr content for head account
+newOpcrContent = [{
+        'name': 'MFO and Target name',
+        'success': [{
+                'indicator': 'this is indicator 1',
+                'budget': 0.0,
+                'division': '',
+                'accomplishment': '',
+                'rating': [],
+                'remarks': [],
+                'assigned_to': []
+        }]
+}]
+
+# creation of opcr for head account
+response = requests.post(f'{url}/api/head/create/opcr', json=newOpcrContent, cookies={'token': headtoken})
+if (response.status_code == 200):
+    print('[+] new head opcr creation... ok')
+else:
+    print('[-] new head opcr creation... ok')
+    print(response.content)
+    interrupt()
+
+# retrieval of new opcr added
+response = requests.get(f'{url}/api/head/opcr', cookies={'token': headtoken})
+if (response.status_code == 200):
+    print('[+] head opcr retrieval... ok')
+    print(response.json().get('data'))
+else:
+    print(response.content)
+    print('[-] head opcr retrieval... failed')
     interrupt()
