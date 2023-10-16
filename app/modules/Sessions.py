@@ -36,7 +36,7 @@ def getSessionInfo(token):
     session = Sessions.objects(token=token).first()
 
     if (session == None): return None
-    return session
+    return json.loads(session.to_json())
 
 # retrieves and refreshes by returning new token
 def refreshToken(token):
