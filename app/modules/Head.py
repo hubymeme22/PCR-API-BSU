@@ -1,36 +1,51 @@
 from flask import request
 from app.database.models import OPCR
 from app.modules import ErrorGen, Sessions
+import json
 
 # generates a new opcr for the user
 def createOPCR():
     userToken = request.cookies.get('token')
-    opcrDetails: dict = request.get_json(force=True)
+    opcrDetails: list = request.get_json(force=True)
 
-    # checks for missing required parameters in targets
-    missingParams = ErrorGen.parameterCheck(
-        requiredParams=opcrDetails.get('targets'),
-        jsonRequest=opcrDetails)
+    # check each parameters in request
+    for opcr in opcrDetails:
+        missingArgs = ErrorGen.parameterCheck(
+            requiredParams=['name', 'success'],
+            jsonRequest=opcr)
 
-    if (len(missingParams) > 0):
-        return ErrorGen.invalidRequestError(
-            datavalue='',
-            error=f'MissingParams={missingParams}')
+        if (len(missingArgs)):
+            return ErrorGen.invalidRequestError(error=f'MissingParams={missingArgs}')
 
-    # get session details and check the token status
-    userDetails = Sessions.getSessionInfo(userToken)
-    if ((userToken == None) and (userDetails == None)):
-        return {
-            'created': False,
-            'error': 'InvalidPermission'
-        }
+        for success in opcr['success']:
+            missingArgs = ErrorGen.parameterCheck(
+                requiredParams=['indicator', 'budget', 'division', 'accomplishment', 'rating', 'assigned_to'],
+                jsonRequest=success)
 
-    # set the user's id as the owner of the new OPCR
-    opcrDetails.update({'owner': userDetails['userid']})
-    newUserOPCR = OPCR(**opcrDetails)
-    newUserOPCR.save()
+            if (len(missingArgs)):
+                return ErrorGen.invalidRequestError(error=f'MissingParams={missingArgs}')
 
-    return {
-        'created': True,
-        'error': None
-    }
+    # retrieve user info based on session
+    try:
+        userSessionInfo = Sessions.getSessionInfo(userToken)
+        newOpcr = OPCR(targets=opcrDetails, owner=userSessionInfo['userid'])
+        newOpcr.save()
+
+        return { 'created': True, 'error': None }
+
+    except:
+        return ErrorGen.invalidRequestError(statusCode=500)
+
+
+# retrieves specific opcr of the user
+def retrieveUserOPCR():
+    usertoken: str = request.cookies.get('token')
+
+    try:
+        userDetails: dict = Sessions.getSessionInfo(usertoken)
+        userOpcr = OPCR.objects(owner=userDetails['userid'])
+        userOpcrParsed = [json.loads(OPCRObject.to_json()) for OPCRObject in userOpcr]
+        return { 'data': userOpcrParsed, 'error': None }
+
+    except:
+        return ErrorGen.invalidRequestError(statusCode=500)

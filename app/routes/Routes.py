@@ -91,3 +91,7 @@ def campus_by_id(id):
 @app.route('/api/head/create/opcr', methods=['POST'])
 def createHeadOPCR():
     return Head.createOPCR()
+
+@app.route('/api/head/opcr')
+def retrieveUserOPCR():
+    return Head.retrieveUserOPCR()
