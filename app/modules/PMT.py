@@ -8,12 +8,6 @@ import json
 def create_opcr():
     # Get data from POST request
     data = request.get_json(force=True)
-    user_token = request.cookies.get('token')
-    user_info = Sessions.getSessionInfo(user_token)
-
-    # Check if the user has proper permission to do this
-    if not user_info or user_info['permission'] != 'pmt':
-        return ErrorGen.invalidRequestError(error = "Creating OPCR record failed. You do not have permission to do this")
     
     opcr_record = OPCR(**data)
     opcr_record.save()
