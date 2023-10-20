@@ -61,14 +61,19 @@ def create_opcr():
     return PMT.create_opcr()
 
 # Get all the OPCR records
-@app.route('/api/pmt/get/opcr', methods = ['GET'])
-def get_opcr():
-    return PMT.get_opcr()
+# @app.route('/api/pmt/get/opcr', methods = ['GET'])
+# def get_opcr():
+#     return PMT.get_opcr()
 
 # Get an OPCR record based on ID
 @app.route('/api/pmt/get/opcr/<id>', methods = ['GET'])
 def opcr_by_id(id):
     return PMT.opcr_by_id(id)
+
+# Get OPCR record(s) based on the offices of the Campus(es) of logged in PMT
+@app.route('/api/pmt/get/opcr', methods = ['GET'])
+def get_opcr():
+    return PMT.opcr_by_campus()
 
 # create campus record (sample route only for testing purposes)
 @app.route('/api/pmt/create/campus', methods = ["POST"])
