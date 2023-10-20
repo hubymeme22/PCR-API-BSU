@@ -6,9 +6,16 @@ import json
 
 # create new target record (sample route only for testing purposes)
 def create_opcr():
-    # Get data from POST request
-    data = request.get_json(force=True)
+    # Get basic user info from cookie token    
+    user_token = request.cookies.get('token')
+    user_info = Sessions.getSessionInfo(user_token)
     
+    # Check if the user is logged in or if the permission is set to PMT
+    if not user_info or user_info['permission'] != 'pmt':
+        return ErrorGen.invalidRequestError(error = 'Unauthorized Request', statusCode = 403)
+
+    # Save data from POST request
+    data = request.get_json(force=True)
     opcr_record = OPCR(**data)
     opcr_record.save()
 
@@ -19,6 +26,15 @@ def create_opcr():
 
 # Get all the OPCR records
 def get_opcr():
+    # Get basic user info from cookie token
+    user_token = request.cookies.get('token')
+    user_info = Sessions.getSessionInfo(user_token)
+    
+    # Check if the user is logged in or if the permission is set to PMT
+    if not user_info or user_info['permission'] != 'pmt':
+        return ErrorGen.invalidRequestError(error = 'Unauthorized Request', statusCode = 403)
+
+    # Fetch all OPCR objects
     target = OPCR.objects()
     if target:
         result = target.to_json()
@@ -34,9 +50,19 @@ def get_opcr():
 
 # Get an OPCR record based on ID
 def opcr_by_id(id):
+    # Get basic user info from cookie token
+    user_token = request.cookies.get('token')
+    user_info = Sessions.getSessionInfo(user_token)
+    
+    # Check if the user is logged in or if the permission is set to PMT
+    if not user_info or user_info['permission'] != 'pmt':
+        return ErrorGen.invalidRequestError(error = 'Unauthorized Request', statusCode = 403)
+
+    # Check validity of ID format
     if not ObjectId.is_valid(id):
         return ErrorGen.invalidRequestError(error=f"Invalid id ('{id}'). It must be a 12-byte value. See https://www.mongodb.com/docs/manual/reference/method/ObjectId/")
     
+    # Fetch the OPCR object
     target = OPCR.objects(id=id).first()
     if target:
         result = target.to_json()
@@ -79,8 +105,16 @@ def opcr_by_campus():
 
 # create campus record (sample route only for testing purposes)
 def create_campus():
-    data = request.get_json(force=True)
+    # Get basic user info from cookie token
+    user_token = request.cookies.get('token')
+    user_info = Sessions.getSessionInfo(user_token)
     
+    # Check if the user is logged in or if the permission is set to PMT
+    if not user_info or user_info['permission'] != 'pmt':
+        return ErrorGen.invalidRequestError(error = 'Unauthorized Request', statusCode = 403)
+
+    # Save data from POST request
+    data = request.get_json(force=True)    
     campus = Campuses(**data)
     campus.save()
     return {
@@ -90,6 +124,15 @@ def create_campus():
 
 # read campus in db 
 def get_campus():
+    # Get basic user info from cookie token
+    user_token = request.cookies.get('token')
+    user_info = Sessions.getSessionInfo(user_token)
+    
+    # Check if the user is logged in or if the permission is set to PMT
+    if not user_info or user_info['permission'] != 'pmt':
+        return ErrorGen.invalidRequestError(error = 'Unauthorized Request', statusCode = 403)
+
+    # Fetch Campuses objects
     campuses = Campuses.objects()
     if campuses:
         return {
@@ -104,9 +147,19 @@ def get_campus():
 
 # read campus in db based on id attribute (sample route only for testing purposes)
 def campus_by_id(id):
+    # Get basic user info from cookie token
+    user_token = request.cookies.get('token')
+    user_info = Sessions.getSessionInfo(user_token)
+    
+    # Check if the user is logged in or if the permission is set to PMT
+    if not user_info or user_info['permission'] != 'pmt':
+        return ErrorGen.invalidRequestError(error = 'Unauthorized Request', statusCode = 403)
+
+    # Check validity of ID format
     if not ObjectId.is_valid(id):
         return ErrorGen.invalidRequestError(error=f"Invalid id ('{id}'). It must be a 12-byte value. See https://www.mongodb.com/docs/manual/reference/method/ObjectId/")
     
+    # Fetch the Campus object
     campus_record = Campuses.objects(id=id).first()
     if campus_record:
         return {
