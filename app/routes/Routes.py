@@ -90,6 +90,10 @@ def get_campus():
 def campus_by_id(id):
     return PMT.campus_by_id(id)
 
+@app.route('/api/pmt/update/opcr/<id>', methods = ['POST'])
+def write_remark(id):
+    return PMT.write_remark(id)
+
 ###########################################
 #   Head functionalities implementation   #
 ###########################################

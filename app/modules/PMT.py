@@ -172,3 +172,22 @@ def campus_by_id(id):
         'error': None
     }
 
+
+# Write remark on an OPCR object
+def write_remark(id):
+    # Get the OPCR object based on ID
+    opcr_object = OPCR.objects(id=id).first()
+    remarks = request.get_json(force = True)['remarks']
+
+    # Place the remarks
+    for i, outer_list in enumerate(remarks):
+        for j, remark in enumerate(outer_list):
+            opcr_object.targets[i].success[j].remarks = remark
+
+
+    # Save the update
+    opcr_object.save()
+
+    return {
+        'message': "Remarks written successfully"
+    }
