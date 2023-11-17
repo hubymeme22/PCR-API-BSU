@@ -1,10 +1,12 @@
 from flask import Flask
+from flask_cors import CORS
 from mongoengine import connect
 from dotenv import load_dotenv
 import os
 
 # Initiate flask app
 app = Flask(__name__)
+cors = CORS(app)
 
 # Load environment variables (in .env)
 load_dotenv()
