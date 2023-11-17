@@ -11,12 +11,14 @@ def login(email, password):
         return ({
             'error': 'NonexistentAccount',
             'loggedIn': False,
+            'permission': None,
             'token': ''
         }, 401)
 
     userlogin = json.loads(userlogin.to_json())
     generatedToken = str(uuid4())
 
+    # generates a new session after loging in
     session = Sessions(
         userid=userlogin['_id']['$oid'],
         token=generatedToken,
@@ -27,7 +29,8 @@ def login(email, password):
     return {
         'error': None,
         'loggedIn': True,
-        'token': generatedToken,
+        'permission': userlogin['permission'],
+        'token': generatedToken
     }
 
 # retrieves the user session information based on token
