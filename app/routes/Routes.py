@@ -32,6 +32,10 @@ def adminAccount():
 def adminAccountWithID(id):
     return Admin.adminAccountWithID(id)
 
+@app.route('/api/admin/campuses')
+def adminCampuses():
+    return Admin.adminGetCampuses()
+
 @app.route('/api/admin/create/pmt', methods=['POST'])
 def adminCreateAccountPMT():
     return Admin.adminCreateAccountPMT()

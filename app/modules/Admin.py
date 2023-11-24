@@ -27,7 +27,7 @@ def adminAccount():
     tokenStatus = adminTokenCheck(request.cookies.get('token'))
     if (tokenStatus != None): return tokenStatus
 
-    accounts = Accounts.objects().to_json()
+    accounts = json.loads(Accounts.objects().to_json())
     print(accounts)
 
     return {
@@ -185,6 +185,17 @@ def adminAssignPmtCampus():
     otherCampuses.save()
 
     return {
-        'data': otherCampuses.to_json(),
+        'data': json.loads(otherCampuses.to_json()),
+        'error': None
+    }
+
+# retrieves all the campuses
+def adminGetCampuses():
+    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    if (tokenStatus != None): return tokenStatus
+
+    campuses = Campuses.objects()
+    return {
+        'data': json.loads(campuses.to_json()),
         'error': None
     }
