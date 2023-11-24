@@ -12,13 +12,14 @@ Sequence of process for testing:
 - Huberto
 '''
 from mongoengine import connect
+from mongoengine.connection import disconnect
 from dotenv import load_dotenv
 import requests
 import dbreset
 import os
 
 load_dotenv()
-connect(os.getenv('MONGODB_DB'), host=f"mongodb+srv://{os.getenv('MONGODB_USER')}:{os.getenv('MONGODB_PW')}@{os.getenv('MONGODB_HOST')}/?retryWrites=true&w=majority&appName=AtlasApp")
+connect(os.getenv('MONGODB_DB'), host=f"mongodb+srv://{os.getenv('MONGODB_USER')}:{os.getenv('MONGODB_PW')}@{os.getenv('MONGODB_HOST')}/?retryWrites=true", alias='api-test')
 
 # change this part
 apiServerIP = '127.0.0.1'
@@ -88,7 +89,7 @@ else:
 
 # testing for account creation
 for i in range(len(sampleAccounts)):
-    response = requests.post(f'{url}/api/admin/create/{sampleAccounts[i]["permission"]}', json=sampleAccounts[i])
+    response = requests.post(f'{url}/api/admin/create/{sampleAccounts[i]["permission"]}', json=sampleAccounts[i], cookies={'token': admintoken})
     if (response.status_code == 200):
         print(f'[+] Account {sampleAccounts[i]["username"]}... ok')
         continue
@@ -97,7 +98,7 @@ for i in range(len(sampleAccounts)):
     interrupt()
 
 # test to retrieve all the accounts on admin side
-response = requests.get(f'{url}/api/admin/accounts/')
+response = requests.get(f'{url}/api/admin/accounts/', cookies={'token': admintoken})
 if (response.status_code == 200):
     print('[+] Account retrieval... ok')
     accountData: list = response.json()
@@ -123,6 +124,7 @@ if (headAccount != None):
     # individual account creation
     response = requests.post(
         url=f'{url}/api/admin/create/individual',
+        cookies={'token': admintoken},
         json={
         'email': 'samplehead@gmail.com',
         'name': 'sample head lastname',
@@ -146,7 +148,7 @@ if (headAccount != None):
         }]
     })
 
-    response = requests.post(f'{url}/api/admin/create/campus', json=sampleCampus)
+    response = requests.post(f'{url}/api/admin/create/campus', json=sampleCampus, cookies={'token': admintoken})
 
     if (response.status_code == 200):
         print('[+] New Campus creation... ok')
@@ -168,7 +170,7 @@ for acc in accounts:
         break
 
 # assign the pmt to the sample campus
-response = requests.post(f'{url}/api/admin/assign/campus', json={
+response = requests.post(f'{url}/api/admin/assign/campus', cookies={'token': admintoken}, json={
     'campus': sampleCampus['name'],
     'pmtid': pmtAccount['_id']['$oid']
 })
@@ -229,3 +231,5 @@ else:
     print(response.content)
     print('[-] head opcr retrieval... failed')
     interrupt()
+
+disconnect()

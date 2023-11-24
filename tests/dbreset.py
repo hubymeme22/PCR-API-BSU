@@ -3,11 +3,12 @@ sys.path.append('..')
 
 from app.database.models import Accounts, OPCR, Campuses, Sessions
 from mongoengine import connect
+from mongoengine.connection import disconnect
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
-connect(os.getenv('MONGODB_DB'), host=f"mongodb+srv://{os.getenv('MONGODB_USER')}:{os.getenv('MONGODB_PW')}@{os.getenv('MONGODB_HOST')}/?retryWrites=true&w=majority&appName=AtlasApp")
+connect(os.getenv('MONGODB_DB'), host=f"mongodb+srv://{os.getenv('MONGODB_USER')}:{os.getenv('MONGODB_PW')}@{os.getenv('MONGODB_HOST')}/?retryWrites=true&w=majority&appName=AtlasApp", alias='db-reset')
 
 def dbReset():
     try:
@@ -41,3 +42,4 @@ def dbReset():
 
 if (__name__ == '__main__'):
     dbReset()
+    disconnect()
