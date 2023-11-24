@@ -1,12 +1,35 @@
 from flask import request
 from app.database.models import Accounts, Campuses
-from app.modules import ErrorGen
+from app.modules import ErrorGen, Sessions
 import json
+
+# encapsulated token checking for admin part
+def adminTokenCheck(token: str=None):
+    if (token == None):
+        return ErrorGen.invalidRequestError(
+            error='NoCookie',
+            statusCode=403)
+
+    sessinfo = Sessions.getSessionInfo(token)
+    if (sessinfo == None):
+        return ErrorGen.invalidRequestError(
+            error='ExpiredCookie',
+            statusCode=403)
+
+    if (sessinfo['permission'] != 'admin'):
+        return ErrorGen.invalidRequestError(
+            error='InvalidPermission',
+            statusCode=403)
 
 # returns all the account info from the database
 # excluding the password
 def adminAccount():
+    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    if (tokenStatus != None): return tokenStatus
+
     accounts = Accounts.objects().to_json()
+    print(accounts)
+
     return {
         'data': json.loads(accounts),
         'error': None
@@ -15,6 +38,9 @@ def adminAccount():
 # returns the account info from the database where user
 # having the spcified id
 def adminAccountWithID(id):
+    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    if (tokenStatus != None): return tokenStatus
+
     account = Accounts.objects(id=id).first().to_json()
     return {
         'data': json.loads(account),
@@ -23,6 +49,9 @@ def adminAccountWithID(id):
 
 # creates a new account for PMT
 def adminCreateAccountPMT():
+    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    if (tokenStatus != None): return tokenStatus
+
     accountDetails = request.get_json(force=True)
     missedParams = ErrorGen.parameterCheck(
         requiredParams=['name', 'username', 'email', 'password'],
@@ -50,6 +79,9 @@ def adminCreateAccountPMT():
 
 # creates a new account for office head
 def adminCreateAccountHead():
+    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    if (tokenStatus != None): return tokenStatus
+
     accountDetails = request.get_json(force=True)
     missedParams = ErrorGen.parameterCheck(
         requiredParams=['name', 'username', 'email', 'password'],
@@ -76,6 +108,9 @@ def adminCreateAccountHead():
 
 # creates a new account for office individuals
 def adminCreateAccountIndiv():
+    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    if (tokenStatus != None): return tokenStatus
+
     accountDetails = request.get_json(force=True)
     missedParams = ErrorGen.parameterCheck(
         requiredParams=['name', 'username', 'email', 'password', 'superior'],
@@ -101,6 +136,9 @@ def adminCreateAccountIndiv():
 
 # creates and registers new campus
 def adminCreateCampus():
+    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    if (tokenStatus != None): return tokenStatus
+
     campusDetails: dict = request.get_json(force=True)
     missedParams = ErrorGen.parameterCheck(
         requiredParams=['name', 'offices'],
@@ -122,6 +160,9 @@ def adminCreateCampus():
 
 # assigns the pmt to a specific campus
 def adminAssignPmtCampus():
+    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    if (tokenStatus != None): return tokenStatus
+
     campusDetails = request.get_json(force=True)
     missedParams = ErrorGen.parameterCheck(
         requiredParams=['campus', 'pmtid'],
