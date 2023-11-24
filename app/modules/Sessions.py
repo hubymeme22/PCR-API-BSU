@@ -55,7 +55,7 @@ def refreshToken(token):
         userid=session['userid'],
         token=generatedToken,
         permission=session['permission'],
-        expiration=datetime.now() + timedelta(hours=1))
+        expiration=datetime.now() + timedelta(days=1))
     session.save()
 
     # delete the old token here...
