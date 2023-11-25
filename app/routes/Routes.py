@@ -54,14 +54,17 @@ def adminCreateCampus():
 def adminCampuses():
     return Admin.adminGetCampuses()
 
-@app.route('/api/admin/edit/campus')
-def adminEditCampus():
+@app.route('/api/admin/edit/campus/<id>', methods=['PUT', 'POST'])
+def adminEditCampus(id):
     return {}
 
-@app.route('/api/admin/delete/campus')
-def adminDeleteCampus():
+@app.route('/api/admin/delete/campus/<id>', methods=['GET', 'DELETE'])
+def adminDeleteCampus(id):
     return {}
 
+@app.route('/api/admin/delete/office/<campusid>/<officeid>', methods=['GET', 'DELETE'])
+def adminDeleteDepartment(campusid, officeid):
+    return Admin.adminDeleteOffice(campusid, officeid)
 
 @app.route('/api/admin/assign/pmt/campus', methods=['POST'])
 def adminAssignPmtCampus():

@@ -1,6 +1,7 @@
 from flask import request
 from app.database.models import Accounts, Campuses
 from app.modules import ErrorGen, Sessions
+from bson.objectid import ObjectId
 import json
 
 # encapsulated token checking for admin part
@@ -197,5 +198,43 @@ def adminGetCampuses():
     campuses = Campuses.objects()
     return {
         'data': json.loads(campuses.to_json()),
+        'error': None
+    }
+
+# deletes office data and remove the office head access
+def adminDeleteOffice(campusid, departmentid):
+    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    if (tokenStatus != None): return tokenStatus
+
+    campuses = Campuses.objects(id=campusid).first()
+    if (campuses == None): return ErrorGen.invalidRequestError(error='NonexistentCampusID', statusCode=404)
+
+    parsedCampuses: dict = json.loads(campuses.to_json())
+    retrievedOffices: list[dict] = parsedCampuses['offices']
+
+    # manually search for the matched id and deletes it
+    departmentFound = False
+    for i in range(len(retrievedOffices)):
+        office = retrievedOffices[i]
+        if (office['_id']['$oid'] == departmentid):
+            retrievedOffices.pop(i)
+            departmentFound = True
+            break
+
+    if (not departmentFound):
+        return ErrorGen.invalidRequestError(error='NonexistentDepartmentID')
+
+    # manually update the list with valid object id
+    updatedOfficeList = []
+    for i in range(len(retrievedOffices)):
+        office = retrievedOffices[i]
+        office.update({ '_id': ObjectId(office['_id']['$oid']) })
+        updatedOfficeList.append(office)
+
+    # update on the database part
+    campuses.update(offices=updatedOfficeList)
+    return {
+        'data': {},
+        'updated': True,
         'error': None
     }
