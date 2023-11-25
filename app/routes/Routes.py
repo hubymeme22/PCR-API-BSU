@@ -32,10 +32,7 @@ def adminAccount():
 def adminAccountWithID(id):
     return Admin.adminAccountWithID(id)
 
-@app.route('/api/admin/campuses')
-def adminCampuses():
-    return Admin.adminGetCampuses()
-
+# account creation part
 @app.route('/api/admin/create/pmt', methods=['POST'])
 def adminCreateAccountPMT():
     return Admin.adminCreateAccountPMT()
@@ -48,11 +45,25 @@ def adminCreateAccountHead():
 def adminCreateAccountIndiv():
     return Admin.adminCreateAccountIndiv()
 
+# campus CRUD operation part
 @app.route('/api/admin/create/campus', methods=['POST'])
 def adminCreateCampus():
     return Admin.adminCreateCampus()
 
-@app.route('/api/admin/assign/campus', methods=['POST'])
+@app.route('/api/admin/campuses')
+def adminCampuses():
+    return Admin.adminGetCampuses()
+
+@app.route('/api/admin/edit/campus')
+def adminEditCampus():
+    return {}
+
+@app.route('/api/admin/delete/campus')
+def adminDeleteCampus():
+    return {}
+
+
+@app.route('/api/admin/assign/pmt/campus', methods=['POST'])
 def adminAssignPmtCampus():
     return Admin.adminAssignPmtCampus()
 

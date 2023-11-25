@@ -27,7 +27,7 @@ def adminAccount():
     tokenStatus = adminTokenCheck(request.cookies.get('token'))
     if (tokenStatus != None): return tokenStatus
 
-    accounts = json.loads(Accounts.objects().to_json())
+    accounts = Accounts.objects().to_json()
     print(accounts)
 
     return {
