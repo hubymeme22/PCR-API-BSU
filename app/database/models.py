@@ -1,4 +1,5 @@
-from mongoengine import Document, EmbeddedDocument, EmbeddedDocumentField, StringField, IntField, FloatField, ListField, DateField, BooleanField
+from mongoengine import Document, EmbeddedDocument, EmbeddedDocumentField, StringField, IntField, FloatField, ListField, DateField, BooleanField, ObjectIdField
+from bson.objectid import ObjectId
 
 class Accounts(Document):
     name = StringField(max_length=50, required=True)    
@@ -36,6 +37,7 @@ class OPCR(Document):
 
 # Campuses model
 class _offices(EmbeddedDocument):
+    oid = ObjectIdField(required=True, default=ObjectId, unique=True, primary_key=True)
     name = StringField()
     head = StringField()
     opcr = ListField(StringField())
