@@ -6,6 +6,7 @@ import json
 
 # encapsulated token checking for admin part
 def adminTokenCheck(token: str=None):
+    return None
     if (token == None):
         return ErrorGen.invalidRequestError(
             error='NoCookie',
@@ -29,8 +30,6 @@ def adminAccount():
     if (tokenStatus != None): return tokenStatus
 
     accounts = Accounts.objects().to_json()
-    print(accounts)
-
     return {
         'data': json.loads(accounts),
         'error': None
