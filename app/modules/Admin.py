@@ -237,3 +237,39 @@ def adminDeleteOffice(campusid, departmentid):
         'updated': True,
         'error': None
     }
+
+# edits the campus data (add new department/office)
+def adminEditCampusData(campusid):
+    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    if (tokenStatus != None): return tokenStatus
+
+    # check if the campus exist in the database
+    campus = Campuses.objects(id=campusid).first()
+    if (campus == None): ErrorGen.invalidRequestError(error='NonexistentCampus')
+
+    # retrieve and check parameters
+    campusData = request.get_json(force=True)
+    missedParams = ErrorGen.parameterCheck(['name', 'offices'], campusData)
+    if (len(missedParams) > 0):
+        return ErrorGen.invalidRequestError(error=f'MissedParams={missedParams}')
+
+    # check every office parameters
+    for officeData in campusData['offices']:
+        missedOfficeParam = ErrorGen.parameterCheck(['name', 'head', 'opcr'], officeData)
+        if (len(missedOfficeParam) > 0):
+            return ErrorGen.invalidRequestError(error=f'MissedParams={missedParams}')
+
+    # if existing opcr is passed alongside with old opcr
+    # convert the id into valid id format
+    for i in len(campusData['offices']):
+        officeData = campusData['offices'][i]
+        if ('_id' in officeData):
+            campusData['offices'][i]['_id'] = ObjectId(officeData['_id']['$oid'])
+
+    # campuses update
+    campus.update(name=campusData['name'], offices=campusData['offices'])
+    return {
+        'data': None,
+        'updated': True,
+        'error': None
+    }

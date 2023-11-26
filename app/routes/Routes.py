@@ -56,7 +56,7 @@ def adminCampuses():
 
 @app.route('/api/admin/edit/campus/<id>', methods=['PUT', 'POST'])
 def adminEditCampus(id):
-    return {}
+    return Admin.adminEditCampusData(id)
 
 @app.route('/api/admin/delete/campus/<id>', methods=['GET', 'DELETE'])
 def adminDeleteCampus(id):
