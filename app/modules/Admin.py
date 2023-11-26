@@ -147,6 +147,12 @@ def adminCreateCampus():
     if (len(missedParams) > 0):
         return ErrorGen.invalidRequestError(error=f'MissedParams={missedParams}')
 
+    # automatically set the head value to empty string
+    for i in range(len(campusDetails['offices'])):
+        office = campusDetails['offices'][i]
+        if ('head' not in office):
+            campusDetails['offices'][i].set({'head': ''})
+
     # initialize the list of pmt ids as empty
     campusDetails.update({'pmt': []})
     newCampus = Campuses(**campusDetails)
@@ -245,7 +251,7 @@ def adminEditCampusData(campusid):
 
     # check if the campus exist in the database
     campus = Campuses.objects(id=campusid).first()
-    if (campus == None): ErrorGen.invalidRequestError(error='NonexistentCampus')
+    if (campus == None): return ErrorGen.invalidRequestError(error='NonexistentCampus')
 
     # retrieve and check parameters
     campusData = request.get_json(force=True)
@@ -257,11 +263,11 @@ def adminEditCampusData(campusid):
     for officeData in campusData['offices']:
         missedOfficeParam = ErrorGen.parameterCheck(['name', 'head', 'opcr'], officeData)
         if (len(missedOfficeParam) > 0):
-            return ErrorGen.invalidRequestError(error=f'MissedParams={missedParams}')
+            return ErrorGen.invalidRequestError(error=f'MissedParams={missedOfficeParam}')
 
     # if existing opcr is passed alongside with old opcr
     # convert the id into valid id format
-    for i in len(campusData['offices']):
+    for i in range(len(campusData['offices'])):
         officeData = campusData['offices'][i]
         if ('_id' in officeData):
             campusData['offices'][i]['_id'] = ObjectId(officeData['_id']['$oid'])
