@@ -151,7 +151,7 @@ def adminCreateCampus():
     for i in range(len(campusDetails['offices'])):
         office = campusDetails['offices'][i]
         if ('head' not in office):
-            campusDetails['offices'][i].set({'head': ''})
+            campusDetails['offices'][i].update({'head': ''})
 
     # initialize the list of pmt ids as empty
     campusDetails.update({'pmt': []})
