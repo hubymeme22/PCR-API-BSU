@@ -275,7 +275,23 @@ def adminEditCampusData(campusid):
     # campuses update
     campus.update(name=campusData['name'], offices=campusData['offices'])
     return {
-        'data': None,
+        'data': json.loads(campus.to_json()),
         'updated': True,
+        'error': None
+    }
+
+# deletes a campus
+def adminDeleteCampus(campusid):
+    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    if (tokenStatus != None): return tokenStatus
+
+    # check if the campus exist in the database
+    campus = Campuses.objects(id=campusid)
+    if (campus == None): return ErrorGen.invalidRequestError(error='NonexistentCampus')
+
+    campus.delete()
+    return {
+        'data': json.loads(campus.to_json()),
+        'deleted': True,
         'error': None
     }

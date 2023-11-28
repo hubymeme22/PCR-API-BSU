@@ -60,7 +60,7 @@ def adminEditCampus(id):
 
 @app.route('/api/admin/delete/campus/<id>', methods=['GET', 'DELETE'])
 def adminDeleteCampus(id):
-    return {}
+    return Admin.adminDeleteCampus(id)
 
 @app.route('/api/admin/delete/office/<campusid>/<officeid>', methods=['GET', 'DELETE'])
 def adminDeleteDepartment(campusid, officeid):
