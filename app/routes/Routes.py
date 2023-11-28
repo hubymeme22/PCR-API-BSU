@@ -62,6 +62,10 @@ def adminCreateCampus():
 def adminCampuses():
     return Admin.adminGetCampuses()
 
+@app.route('/api/admin/departments/<campusid>')
+def adminGetDepartmentsByCampus(campusid):
+    return {}
+
 @app.route('/api/admin/edit/campus/<id>', methods=['PUT', 'POST'])
 def adminEditCampus(id):
     return Admin.adminEditCampusData(id)
@@ -74,9 +78,15 @@ def adminDeleteCampus(id):
 def adminDeleteDepartment(campusid, officeid):
     return Admin.adminDeleteOffice(campusid, officeid)
 
-@app.route('/api/admin/assign/pmt/campus', methods=['POST'])
+# assign pmt to a campus
+@app.route('/api/admin/assign/pmt/campus', methods=['POST', 'PUT'])
 def adminAssignPmtCampus():
     return Admin.adminAssignPmtCampus()
+
+# assign head to a department
+@app.route('/api/admin/assign/head/campus', methods=['POST', 'PUT'])
+def adminAssignHeadCampus():
+    return Admin.adminAssignHeadCampus()
 
 ##########################################
 #   PMT functionalities implementation   #

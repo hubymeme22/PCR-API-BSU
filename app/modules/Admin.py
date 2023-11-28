@@ -232,6 +232,52 @@ def adminAssignPmtCampus():
         'error': None
     }
 
+# assigns a head to a specific department
+def adminAssignHeadCampus():
+    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    if (tokenStatus != None): return tokenStatus
+
+    requestPayload = request.get_json(force=True)
+    missedParams = ErrorGen.parameterCheck(
+        requiredParams=['campusid', 'departmentid', 'headid'],
+        jsonRequest=requestPayload)
+
+    if (len(missedParams) > 0):
+        return ErrorGen.invalidRequestError(error=f'MissedParams={missedParams}')
+
+    # retrieve the campus specified
+    campusData = Campuses.objects(id=requestPayload['campusid']).first()
+    if (campusData == None): return ErrorGen.invalidRequestError(error='NonexistentCampus')
+
+    # retrieve the specific department
+    parsedCampusData = json.loads(campusData.to_json())
+    departmentIndex = -1
+    for i in range(len(parsedCampusData['offices'])):
+        if (requestPayload['departmentid'] == parsedCampusData['offices'][i]['_id']['$oid']):
+            departmentIndex = i
+            break
+
+    if (departmentIndex < 0):
+        return ErrorGen.invalidRequestError(error='NonexistentDepartment')
+
+    # convert the office object ids into ObjectID
+    for i in range(len(parsedCampusData['offices'])):
+        parsedCampusData['offices'][i]['_id'] = ObjectId(parsedCampusData['offices'][i]['_id']['$oid'])
+
+    # unoptimized krazy code
+    unassignedAccounts = adminUnassignedHeadAccount()
+    for account in unassignedAccounts['data']:
+        if (account['_id']['$oid'] == requestPayload['headid']):
+            parsedCampusData['offices'][departmentIndex]['head'] = requestPayload['headid']
+            campusData.update(offices=parsedCampusData['offices'])
+            return {
+                'data': '',
+                'assigned': True,
+                'error': None
+            }
+
+    return ErrorGen.invalidRequestError(error='AccountAlreadyAssigned')
+
 # retrieves all the campuses
 def adminGetCampuses():
     tokenStatus = adminTokenCheck(request.cookies.get('token'))
@@ -308,6 +354,9 @@ def adminEditCampusData(campusid):
         officeData = campusData['offices'][i]
         if ('_id' in officeData):
             campusData['offices'][i]['_id'] = ObjectId(officeData['_id']['$oid'])
+
+        if ('id' in officeData):
+            campusData['offices'][i]['id'] = ObjectId(officeData['id'])
 
     # campuses update
     campus.update(name=campusData['name'], offices=campusData['offices'])
