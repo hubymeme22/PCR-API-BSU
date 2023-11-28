@@ -35,6 +35,43 @@ def adminAccount():
         'error': None
     }
 
+# retrieve all head accounts
+def adminHeadAccount():
+    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    if (tokenStatus != None): return tokenStatus
+
+    accounts = Accounts.objects(permission='head').to_json()
+    return {
+        'data': json.loads(accounts),
+        'error': None
+    }
+
+# retrieve all head accounts
+def adminUnassignedHeadAccount():
+    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    if (tokenStatus != None): return tokenStatus
+
+    campuses = Campuses.objects()
+    accounts = json.loads(Accounts.objects(permission='head').to_json())
+
+    # super ultra mega slow manual bruteforce (my bad)
+    existingHeadIDs = []
+    for campus in campuses:
+        for office in campus['offices']:
+            if (office['head'] != ''):
+                existingHeadIDs.append(office['head'])
+
+    # search if the current account's id already exists
+    notRegisteredHead = []
+    for headAccount in accounts:
+        if (headAccount['_id']['$oid'] not in existingHeadIDs):
+            notRegisteredHead.append(headAccount)
+
+    return {
+        'data': notRegisteredHead,
+        'error': None
+    }
+
 # returns the account info from the database where user
 # having the spcified id
 def adminAccountWithID(id):

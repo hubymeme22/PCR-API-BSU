@@ -28,6 +28,14 @@ def root():
 def adminAccount():
     return Admin.adminAccount()
 
+@app.route('/api/admin/accounts/head')
+def adminHeadAccount():
+    return Admin.adminHeadAccount()
+
+@app.route('/api/admin/accounts/head/unassigned')
+def adminUnassignedHeadAccount():
+    return Admin.adminUnassignedHeadAccount()
+
 @app.route('/api/admin/account/<id>')
 def adminAccountWithID(id):
     return Admin.adminAccountWithID(id)
