@@ -220,7 +220,7 @@ def adminAssignPmtCampus():
         return ErrorGen.invalidRequestError(error='CampusAlreadyAssigned', statusCode=403)
 
     # assign the pmt to campus
-    otherCampuses = Campuses.objects(name=campusDetails['campus']).first()
+    otherCampuses = Campuses.objects(id=campusDetails['campus']).first()
     if (otherCampuses == None):
         return ErrorGen.invalidRequestError(error='NonexistentCampus', statusCode=403)
 
