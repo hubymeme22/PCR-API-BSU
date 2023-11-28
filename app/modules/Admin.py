@@ -289,6 +289,21 @@ def adminGetCampuses():
         'error': None
     }
 
+# retrieves all departments in a campus
+def adminGetDepartments(campusid):
+    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    if (tokenStatus != None): return tokenStatus
+
+    campuses = Campuses.objects(id=campusid).first()
+    if (campuses == None): return ErrorGen.invalidRequestError(error='NonexistentCampus')
+
+    campusData = json.loads(campuses.to_json())
+    return {
+        'data': campusData['offices'],
+        'error': None
+    }
+
+
 # deletes office data and remove the office head access
 def adminDeleteOffice(campusid, departmentid):
     tokenStatus = adminTokenCheck(request.cookies.get('token'))

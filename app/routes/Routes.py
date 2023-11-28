@@ -64,7 +64,7 @@ def adminCampuses():
 
 @app.route('/api/admin/departments/<campusid>')
 def adminGetDepartmentsByCampus(campusid):
-    return {}
+    return Admin.adminGetDepartments(campusid)
 
 @app.route('/api/admin/edit/campus/<id>', methods=['PUT', 'POST'])
 def adminEditCampus(id):
