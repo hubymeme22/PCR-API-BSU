@@ -6,7 +6,6 @@ import json
 
 # encapsulated token checking for admin part
 def adminTokenCheck(token: str=None):
-    return None
     if (token == None):
         return ErrorGen.invalidRequestError(
             error='NoCookie',
