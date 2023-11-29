@@ -6,7 +6,7 @@ import os
 
 # Initiate flask app
 app = Flask(__name__)
-cors = CORS(app)
+cors = CORS(app, origins=["http://localhost:5173", "http://localhost:5173", "http://localhost"])
 
 # Load environment variables (in .env)
 print('[*] Loading envirnoment variables...')
