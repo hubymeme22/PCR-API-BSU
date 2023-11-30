@@ -5,7 +5,8 @@ from bson.objectid import ObjectId
 import json
 
 # encapsulated token checking for admin part
-def adminTokenCheck(token: str=None):
+def adminTokenCheck():
+    token = request.headers.get('Authorization')
     if (token == None):
         return ErrorGen.invalidRequestError(
             error='NoCookie',
@@ -25,7 +26,7 @@ def adminTokenCheck(token: str=None):
 # returns all the account info from the database
 # excluding the password
 def adminAccount():
-    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    tokenStatus = adminTokenCheck()
     if (tokenStatus != None): return tokenStatus
 
     accounts = Accounts.objects().to_json()
@@ -36,7 +37,7 @@ def adminAccount():
 
 # retrieve all head accounts
 def adminHeadAccount():
-    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    tokenStatus = adminTokenCheck()
     if (tokenStatus != None): return tokenStatus
 
     accounts = Accounts.objects(permission='head').to_json()
@@ -47,7 +48,7 @@ def adminHeadAccount():
 
 # retrieve all head accounts
 def adminUnassignedHeadAccount():
-    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    tokenStatus = adminTokenCheck()
     if (tokenStatus != None): return tokenStatus
 
     campuses = Campuses.objects()
@@ -74,7 +75,7 @@ def adminUnassignedHeadAccount():
 # returns the account info from the database where user
 # having the spcified id
 def adminAccountWithID(id):
-    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    tokenStatus = adminTokenCheck()
     if (tokenStatus != None): return tokenStatus
 
     account = Accounts.objects(id=id).first().to_json()
@@ -85,7 +86,7 @@ def adminAccountWithID(id):
 
 # creates a new account for PMT
 def adminCreateAccountPMT():
-    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    tokenStatus = adminTokenCheck()
     if (tokenStatus != None): return tokenStatus
 
     accountDetails = request.get_json(force=True)
@@ -115,7 +116,7 @@ def adminCreateAccountPMT():
 
 # creates a new account for office head
 def adminCreateAccountHead():
-    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    tokenStatus = adminTokenCheck()
     if (tokenStatus != None): return tokenStatus
 
     accountDetails = request.get_json(force=True)
@@ -144,7 +145,7 @@ def adminCreateAccountHead():
 
 # creates a new account for office individuals
 def adminCreateAccountIndiv():
-    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    tokenStatus = adminTokenCheck()
     if (tokenStatus != None): return tokenStatus
 
     accountDetails = request.get_json(force=True)
@@ -172,7 +173,7 @@ def adminCreateAccountIndiv():
 
 # creates and registers new campus
 def adminCreateCampus():
-    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    tokenStatus = adminTokenCheck()
     if (tokenStatus != None): return tokenStatus
 
     campusDetails: dict = request.get_json(force=True)
@@ -202,7 +203,7 @@ def adminCreateCampus():
 
 # assigns the pmt to a specific campus
 def adminAssignPmtCampus():
-    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    tokenStatus = adminTokenCheck()
     if (tokenStatus != None): return tokenStatus
 
     campusDetails = request.get_json(force=True)
@@ -233,7 +234,7 @@ def adminAssignPmtCampus():
 
 # assigns a head to a specific department
 def adminAssignHeadCampus():
-    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    tokenStatus = adminTokenCheck()
     if (tokenStatus != None): return tokenStatus
 
     requestPayload = request.get_json(force=True)
@@ -279,7 +280,7 @@ def adminAssignHeadCampus():
 
 # retrieves all the campuses
 def adminGetCampuses():
-    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    tokenStatus = adminTokenCheck()
     if (tokenStatus != None): return tokenStatus
 
     campuses = Campuses.objects()
@@ -290,7 +291,7 @@ def adminGetCampuses():
 
 # retrieves all departments in a campus
 def adminGetDepartments(campusid):
-    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    tokenStatus = adminTokenCheck()
     if (tokenStatus != None): return tokenStatus
 
     campuses = Campuses.objects(id=campusid).first()
@@ -305,7 +306,7 @@ def adminGetDepartments(campusid):
 
 # deletes office data and remove the office head access
 def adminDeleteOffice(campusid, departmentid):
-    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    tokenStatus = adminTokenCheck()
     if (tokenStatus != None): return tokenStatus
 
     campuses = Campuses.objects(id=campusid).first()
@@ -343,7 +344,7 @@ def adminDeleteOffice(campusid, departmentid):
 
 # edits the campus data (add new department/office)
 def adminEditCampusData(campusid):
-    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    tokenStatus = adminTokenCheck()
     if (tokenStatus != None): return tokenStatus
 
     # check if the campus exist in the database
@@ -382,7 +383,7 @@ def adminEditCampusData(campusid):
 
 # deletes a campus
 def adminDeleteCampus(campusid):
-    tokenStatus = adminTokenCheck(request.cookies.get('token'))
+    tokenStatus = adminTokenCheck()
     if (tokenStatus != None): return tokenStatus
 
     # check if the campus exist in the database

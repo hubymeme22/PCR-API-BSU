@@ -13,7 +13,7 @@ from app.modules import Admin, PMT, Head
 from app import app
 from flask_cors import CORS
 
-cors = CORS(app, origins=["http://localhost:5173", "http://localhost:5173", "http://localhost"])
+cors = CORS(app)
 
 @app.route("/")
 def root():
