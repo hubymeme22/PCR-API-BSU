@@ -53,6 +53,7 @@ def addMFO():
         return ErrorGen.invalidRequestError(error=str(e), statusCode=500)
 
 def createOPCR(opcrid):
+    # implement soon
     return {}
 
 # retrieves specific opcr of the user
@@ -63,7 +64,7 @@ def retrieveUserOPCR():
     usertoken: str = request.headers.get('Authorization')
     try:
         userDetails = Sessions.getSessionInfo(usertoken)
-        userOpcr = OPCR.objects(owner=userDetails['userid']).first()
+        userOpcr = OPCR.objects(owner=userDetails['userid'], archived=False).first()
         if (userOpcr == None): return {}
         return {
             'data': json.loads(userOpcr.to_json()),
