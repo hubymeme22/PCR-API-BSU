@@ -1,44 +1,59 @@
 from flask import request
+from bson.objectid import ObjectId
 from app.database.models import OPCR, Accounts
 from app.modules import ErrorGen, Sessions
 import json
 
 # generates a new opcr for the user
-def createOPCR():
+def addMFO():
     tokenStatus = Sessions.requestTokenCheck('head')
     if (tokenStatus != None): return tokenStatus
 
     userToken = request.headers.get('Authorization')
-    opcrDetails: list = request.get_json(force=True)
+    opcr = request.get_json(force=True)
 
     # check each parameters in request
-    for opcr in opcrDetails:
+    missingArgs = ErrorGen.parameterCheck(
+        requiredParams=['name', 'success'],
+        jsonRequest=opcr)
+
+    if (len(missingArgs)):
+        return ErrorGen.invalidRequestError(error=f'MissingParams={missingArgs}')
+
+    for success in opcr['success']:
         missingArgs = ErrorGen.parameterCheck(
-            requiredParams=['name', 'success'],
-            jsonRequest=opcr)
+            requiredParams=['indicator', 'budget', 'division', 'accomplishment', 'rating', 'assigned_to'],
+            jsonRequest=success)
 
         if (len(missingArgs)):
             return ErrorGen.invalidRequestError(error=f'MissingParams={missingArgs}')
 
-        for success in opcr['success']:
-            missingArgs = ErrorGen.parameterCheck(
-                requiredParams=['indicator', 'budget', 'division', 'accomplishment', 'rating', 'assigned_to'],
-                jsonRequest=success)
-
-            if (len(missingArgs)):
-                return ErrorGen.invalidRequestError(error=f'MissingParams={missingArgs}')
-
     # retrieve user info based on session
     try:
         userSessionInfo = Sessions.getSessionInfo(userToken)
-        newOpcr = OPCR(targets=opcrDetails, owner=userSessionInfo['userid'])
-        newOpcr.save()
+        latestOPCR = OPCR.objects().first()
 
-        return { 'created': True, 'error': None }
+        if (latestOPCR == None):
+            newOpcr = OPCR(targets=[opcr], owner=userSessionInfo['userid'])
+            newOpcr.save()
+            return { 'added': True, 'data': None, 'error': None }
 
-    except:
-        return ErrorGen.invalidRequestError(statusCode=500)
+        # format the target before appending new value
+        convertedTargets = []
+        for target in latestOPCR['targets']:
+            target.update({'_id': ObjectId(target['_id']['$oid'])})
+            convertedTargets.append(target)
 
+        # add a new target
+        convertedTargets.append(opcr)
+        latestOPCR.update(target=convertedTargets)
+        return { 'added': True, 'data': None, 'error': None }
+
+    except Exception as e:
+        return ErrorGen.invalidRequestError(error=str(e), statusCode=500)
+
+def createOPCR(opcrid):
+    return {}
 
 # retrieves specific opcr of the user
 def retrieveUserOPCR():
@@ -48,9 +63,12 @@ def retrieveUserOPCR():
     usertoken: str = request.headers.get('Authorization')
     try:
         userDetails = Sessions.getSessionInfo(usertoken)
-        userOpcr = OPCR.objects(owner=userDetails['userid'])
-        userOpcrParsed = [json.loads(OPCRObject.to_json()) for OPCRObject in userOpcr]
-        return { 'data': userOpcrParsed, 'error': None }
+        userOpcr = OPCR.objects(owner=userDetails['userid']).first()
+        if (userOpcr == None): return {}
+        return {
+            'data': json.loads(userOpcr),
+            'error': None
+        }
 
     except Exception as e:
         return ErrorGen.invalidRequestError(statusCode=500)

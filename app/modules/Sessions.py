@@ -84,3 +84,21 @@ def requestTokenCheck(permission):
         return ErrorGen.invalidRequestError(
             error='InvalidPermission',
             statusCode=403)
+
+def requestMultipleTokenCheck(permissions):
+    token = request.headers.get('Authorization')
+    if (token == None):
+        return ErrorGen.invalidRequestError(
+            error='NoCookie',
+            statusCode=403)
+
+    sessinfo = getSessionInfo(token)
+    if (sessinfo == None):
+        return ErrorGen.invalidRequestError(
+            error='ExpiredCookie',
+            statusCode=403)
+
+    if (sessinfo['permission'] not in permissions):
+        return ErrorGen.invalidRequestError(
+            error='InvalidPermission',
+            statusCode=403)

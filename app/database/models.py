@@ -26,6 +26,7 @@ class _success(EmbeddedDocument):
     assigned_to = ListField(StringField())
 
 class Targets(EmbeddedDocument):
+    oid = ObjectIdField(required=True, default=ObjectId, unique=True, primary_key=True)
     name = StringField()
     success = ListField(EmbeddedDocumentField(_success))
 

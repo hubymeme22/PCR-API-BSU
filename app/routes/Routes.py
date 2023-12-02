@@ -147,6 +147,10 @@ def write_remark(id):
 def createHeadOPCR():
     return Head.createOPCR()
 
+@app.route('/head/add/mfo/', methods=['POST'])
+def createMFO():
+    return Head.addMFO()
+
 @app.route('/head/opcr')
 def retrieveUserOPCR():
     return Head.retrieveUserOPCR()
