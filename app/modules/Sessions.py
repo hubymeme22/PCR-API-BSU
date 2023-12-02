@@ -1,5 +1,6 @@
 from app.database.models import Sessions, Accounts
 from app.modules import ErrorGen
+from flask import request
 from datetime import datetime, timedelta
 from uuid import uuid4
 import json
@@ -63,3 +64,22 @@ def refreshToken(token):
         'error': None,
         'newtoken': generatedToken
     }
+
+# checks token from request
+def requestTokenCheck(permission):
+    token = request.headers.get('Authorization')
+    if (token == None):
+        return ErrorGen.invalidRequestError(
+            error='NoCookie',
+            statusCode=403)
+
+    sessinfo = getSessionInfo(token)
+    if (sessinfo == None):
+        return ErrorGen.invalidRequestError(
+            error='ExpiredCookie',
+            statusCode=403)
+
+    if (sessinfo['permission'] != permission):
+        return ErrorGen.invalidRequestError(
+            error='InvalidPermission',
+            statusCode=403)

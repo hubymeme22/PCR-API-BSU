@@ -5,7 +5,10 @@ import json
 
 # generates a new opcr for the user
 def createOPCR():
-    userToken = request.cookies.get('token')
+    tokenStatus = Sessions.requestTokenCheck('head')
+    if (tokenStatus != None): return tokenStatus
+
+    userToken = request.cookies.get('Authorization')
     opcrDetails: list = request.get_json(force=True)
 
     # check each parameters in request
@@ -39,8 +42,10 @@ def createOPCR():
 
 # retrieves specific opcr of the user
 def retrieveUserOPCR():
-    usertoken: str = request.cookies.get('token')
+    tokenStatus = Sessions.requestTokenCheck('head')
+    if (tokenStatus != None): return tokenStatus
 
+    usertoken: str = request.cookies.get('Authorization')
     try:
         userDetails: dict = Sessions.getSessionInfo(usertoken)
         userOpcr = OPCR.objects(owner=userDetails['userid'])
