@@ -41,6 +41,10 @@ def adminUnassignedHeadAccount():
 def adminAccountWithID(id):
     return Admin.adminAccountWithID(id)
 
+@app.route('/admin/account/superior/assign/<headid>/<individ>', methods=['PUT', 'GET'])
+def adminAssignSuperior(headid, individ):
+    return Admin.adminAssignSuperior(headid, individ)
+
 # account creation part
 @app.route('/admin/create/pmt', methods=['POST'])
 def adminCreateAccountPMT():

@@ -1,7 +1,6 @@
 from flask import request
 from app.database.models import OPCR, Accounts
 from app.modules import ErrorGen, Sessions
-from app.modules.Sessions import getSessionInfo
 import json
 
 # generates a new opcr for the user
@@ -48,7 +47,7 @@ def retrieveUserOPCR():
 
     usertoken: str = request.headers.get('Authorization')
     try:
-        userDetails = getSessionInfo(usertoken)
+        userDetails = Sessions.getSessionInfo(usertoken)
         userOpcr = OPCR.objects(owner=userDetails['userid'])
         userOpcrParsed = [json.loads(OPCRObject.to_json()) for OPCRObject in userOpcr]
         return { 'data': userOpcrParsed, 'error': None }
@@ -63,13 +62,12 @@ def retrieveIndividuals():
 
     usertoken: str = request.headers.get('Authorization')
     try:
-        userDetails: dict = getSessionInfo(usertoken)
-        individualAccounts = Accounts.objects(permission='individual', superior=userDetails.get('userid')).to_json()
-        responseFormat = [{'_id': {'$oid': individual['id']['$oid']}, 'name': individual['name']} for individual in individualAccounts]
+        userDetails: dict = Sessions.getSessionInfo(usertoken)
+        individualAccounts = json.loads(Accounts.objects(permission='individual', superior=userDetails.get('userid')).to_json())
+        responseFormat = [{'_id': {'$oid': individual['_id']['$oid']}, 'name': individual['name']} for individual in individualAccounts]
         return {
             'data': responseFormat,
             'error': None
         }
-
     except:
         return ErrorGen.invalidRequestError(statusCode=500)

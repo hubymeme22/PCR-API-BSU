@@ -65,6 +65,26 @@ def adminAccountWithID(id):
         'error': None
     }
 
+# assigns individual to head as superior
+def adminAssignSuperior(headid, individ):
+    tokenStatus = Sessions.requestTokenCheck('admin')
+    if (tokenStatus != None): return tokenStatus
+
+    # checks if the accounts really do exist
+    headAccount = Accounts.objects(id=headid, permission='head').first()
+    if (headAccount == None): return ErrorGen.invalidRequestError(error='NonexistentAccount', statusCode=404)
+
+    indivAccount = Accounts.objects(id=individ, permission='individual').first()
+    if (indivAccount == None): return ErrorGen.invalidRequestError(error='NonexistentAccount', statusCode=404)
+
+    # assign the superior of indiv as the head
+    indivAccount.update(superior=headid)
+    return {
+        'data': None,
+        'updated': True,
+        'error': None
+    }
+
 # creates a new account for PMT
 def adminCreateAccountPMT():
     tokenStatus = Sessions.requestTokenCheck('admin')
