@@ -1,5 +1,5 @@
 from flask import request
-from app.database.models import Accounts, Campuses
+from app.database.models import Accounts, Campuses, OPCR
 from app.modules import ErrorGen, Sessions
 from bson.objectid import ObjectId
 import json
@@ -409,5 +409,21 @@ def adminDeleteCampus(campusid):
     return {
         'data': json.loads(campus.to_json()),
         'deleted': True,
+        'error': None
+    }
+
+# archives all the latest opcr
+def adminArchiveAllOPCR():
+    tokenStatus = Sessions.requestTokenCheck('admin')
+    if (tokenStatus != None): return tokenStatus
+
+    # retrieve all the opcr that are unarchive and archive it
+    unarchivedOPCR = OPCR.objects(archived=False)
+    for opcr in unarchivedOPCR:
+        opcr.update(archived=True)
+
+    return {
+        'data': None,
+        'archived': True,
         'error': None
     }

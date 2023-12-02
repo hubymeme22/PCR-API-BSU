@@ -98,6 +98,11 @@ def adminAssignPmtCampus():
 def adminAssignHeadCampus():
     return Admin.adminAssignHeadCampus()
 
+# archives all the current opcr
+@app.route('/admin/archive-opcr', methods=['PUT', 'GET'])
+def adminArchiveOpcr():
+    return Admin.adminArchiveAllOPCR()
+
 ##########################################
 #   PMT functionalities implementation   #
 ##########################################
