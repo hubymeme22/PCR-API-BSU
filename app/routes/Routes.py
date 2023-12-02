@@ -10,10 +10,8 @@
     - Hubert
 '''
 from app.modules import Admin, PMT, Head
+from flask import make_response, request
 from app import app
-from flask_cors import CORS
-
-cors = CORS(app)
 
 @app.route("/")
 def root():
@@ -27,7 +25,7 @@ def root():
 ############################################
 #   Admin functionalities implementation   #
 ############################################
-@app.route('/admin/accounts/')
+@app.route('/admin/accounts/', methods=['GET'])
 def adminAccount():
     return Admin.adminAccount()
 
@@ -143,3 +141,16 @@ def createHeadOPCR():
 @app.route('/head/opcr')
 def retrieveUserOPCR():
     return Head.retrieveUserOPCR()
+
+@app.route('/head/individual')
+def retrieveIndividualAssigned():
+    return {}
+
+@app.after_request
+def add_headers(response):
+    if (request.method == 'OPTIONS'):
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        return response
+    return response

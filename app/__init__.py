@@ -6,7 +6,7 @@ import os
 
 # Initiate flask app
 app = Flask(__name__)
-cors = CORS(app)
+CORS(app, supports_credentials=True)
 
 # Load environment variables (in .env)
 print('[*] Loading envirnoment variables...')
