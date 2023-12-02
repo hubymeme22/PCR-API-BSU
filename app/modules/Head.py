@@ -66,11 +66,11 @@ def retrieveUserOPCR():
         userOpcr = OPCR.objects(owner=userDetails['userid']).first()
         if (userOpcr == None): return {}
         return {
-            'data': json.loads(userOpcr),
+            'data': json.loads(userOpcr.to_json()),
             'error': None
         }
 
-    except Exception as e:
+    except Exception:
         return ErrorGen.invalidRequestError(statusCode=500)
 
 # retrieves all the users under this head account
