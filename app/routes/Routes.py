@@ -41,6 +41,10 @@ def adminUnassignedHeadAccount():
 def adminAccountWithID(id):
     return Admin.adminAccountWithID(id)
 
+@app.route('/admin/account/delete/<accountid>', methods=['DELETE'])
+def adminDeleteAccountWithID(accountid):
+    return Admin.adminDeleteAccountWithID(accountid)
+
 @app.route('/admin/account/superior/assign/<headid>/<individ>', methods=['PUT', 'GET'])
 def adminAssignSuperior(headid, individ):
     return Admin.adminAssignSuperior(headid, individ)
@@ -57,6 +61,7 @@ def adminCreateAccountHead():
 @app.route('/admin/create/individual', methods=['POST'])
 def adminCreateAccountIndiv():
     return Admin.adminCreateAccountIndiv()
+
 
 # campus CRUD operation part
 @app.route('/admin/create/campus', methods=['POST'])

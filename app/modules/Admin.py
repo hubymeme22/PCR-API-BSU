@@ -65,6 +65,20 @@ def adminAccountWithID(id):
         'error': None
     }
 
+def adminDeleteAccountWithID(id):
+    tokenStatus = Sessions.requestTokenCheck('admin')
+    if (tokenStatus != None): return tokenStatus
+
+    account = Accounts.objects(id=id).first()
+    if (account == None): return ErrorGen.invalidRequestError(error='NonexistentAccount', statusCode=400)
+
+    account.delete()
+    return {
+        'data': None,
+        'deleted': True,
+        'error': None
+    }
+
 # assigns individual to head as superior
 def adminAssignSuperior(headid, individ):
     tokenStatus = Sessions.requestTokenCheck('admin')
