@@ -1,47 +1,20 @@
 from flask import request
-from app.database.models import Campuses, OPCR, Accounts
+from app.database.models import Campuses, OPCR, Accounts, Sessions
 from app.modules import ErrorGen, Sessions
 from bson import ObjectId
 import json
 
-# create new target record (sample route only for testing purposes)
-def create_opcr():
-    # Get basic user info from cookie token    
-    user_token = request.cookies.get('token')
-    user_info = Sessions.getSessionInfo(user_token)
-    
-    # Check if the user is logged in or if the permission is set to PMT
-    if not user_info or user_info['permission'] != 'pmt':
-        return ErrorGen.invalidRequestError(error = 'Unauthorized Request', statusCode = 403)
-
-    # Save data from POST request
-    data = request.get_json(force=True)
-    opcr_record = OPCR(**data)
-    opcr_record.save()
-
-    return {
-        'status': 'created',
-        'id': str(opcr_record.id)
-    }
-
 # Get all the OPCR records
 def get_opcr():
-    # Get basic user info from cookie token
-    user_token = request.cookies.get('token')
-    user_info = Sessions.getSessionInfo(user_token)
-    
-    # Check if the user is logged in or if the permission is set to PMT
-    if not user_info or user_info['permission'] != 'pmt':
-        return ErrorGen.invalidRequestError(error = 'Unauthorized Request', statusCode = 403)
+    tokenStatus = Sessions.requestTokenCheck('pmt')
+    if (tokenStatus != None): return tokenStatus
 
     # Fetch all OPCR objects
     target = OPCR.objects()
-    if target:
-        result = target.to_json()
-        return {
-            'data': json.loads(result),
-            'error': None
-        }
+    if target: return {
+        'data': json.loads(target.to_json()),
+        'error': None
+    }
 
     return {
         'data': [],
@@ -50,13 +23,8 @@ def get_opcr():
 
 # Get an OPCR record based on ID
 def opcr_by_id(id):
-    # Get basic user info from cookie token
-    user_token = request.cookies.get('token')
-    user_info = Sessions.getSessionInfo(user_token)
-    
-    # Check if the user is logged in or if the permission is set to PMT
-    if not user_info or user_info['permission'] != 'pmt':
-        return ErrorGen.invalidRequestError(error = 'Unauthorized Request', statusCode = 403)
+    tokenStatus = Sessions.requestTokenCheck('pmt')
+    if (tokenStatus != None): return tokenStatus
 
     # Check validity of ID format
     if not ObjectId.is_valid(id):
@@ -64,17 +32,12 @@ def opcr_by_id(id):
     
     # Fetch the OPCR object
     target = OPCR.objects(id=id).first()
-    if target:
-        result = target.to_json()
-        return {
-            'data': json.loads(result),
-            'error': None
-        }
-
-    return {
-        'data': [],
+    if target: return {
+        'data': json.loads(target.to_json()),
         'error': None
     }
+
+    return ErrorGen.invalidRequestError(error='NonexistentOpcrID', statusCode=404)
 
 
 def opcr_by_campus():

@@ -101,11 +101,6 @@ def adminAssignHeadCampus():
 ##########################################
 #   PMT functionalities implementation   #
 ##########################################
-# create new target record (sample route only for testing purposes)
-@app.route('/pmt/create/opcr', methods = ["POST"])
-def create_opcr():
-    return PMT.create_opcr()
-
 # Get all the OPCR records
 # @app.route('/api/pmt/get/opcr', methods = ['GET'])
 # def get_opcr():
@@ -139,6 +134,10 @@ def campus_by_id(id):
 @app.route('/pmt/update/opcr/<id>', methods = ['POST'])
 def write_remark(id):
     return PMT.write_remark(id)
+
+@app.route('/pmt/office/report')
+def getPmtOFficeReport():
+    return {}
 
 ###########################################
 #   Head functionalities implementation   #
