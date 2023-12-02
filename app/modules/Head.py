@@ -1,6 +1,7 @@
 from flask import request
-from app.database.models import OPCR
+from app.database.models import OPCR, Accounts
 from app.modules import ErrorGen, Sessions
+from app.modules.Sessions import getSessionInfo
 import json
 
 # generates a new opcr for the user
@@ -8,7 +9,7 @@ def createOPCR():
     tokenStatus = Sessions.requestTokenCheck('head')
     if (tokenStatus != None): return tokenStatus
 
-    userToken = request.cookies.get('Authorization')
+    userToken = request.headers.get('Authorization')
     opcrDetails: list = request.get_json(force=True)
 
     # check each parameters in request
@@ -45,12 +46,30 @@ def retrieveUserOPCR():
     tokenStatus = Sessions.requestTokenCheck('head')
     if (tokenStatus != None): return tokenStatus
 
-    usertoken: str = request.cookies.get('Authorization')
+    usertoken: str = request.headers.get('Authorization')
     try:
-        userDetails: dict = Sessions.getSessionInfo(usertoken)
+        userDetails = getSessionInfo(usertoken)
         userOpcr = OPCR.objects(owner=userDetails['userid'])
         userOpcrParsed = [json.loads(OPCRObject.to_json()) for OPCRObject in userOpcr]
         return { 'data': userOpcrParsed, 'error': None }
+
+    except Exception as e:
+        return ErrorGen.invalidRequestError(statusCode=500)
+
+# retrieves all the users under this head account
+def retrieveIndividuals():
+    tokenStatus = Sessions.requestTokenCheck('head')
+    if (tokenStatus != None): return tokenStatus
+
+    usertoken: str = request.headers.get('Authorization')
+    try:
+        userDetails: dict = getSessionInfo(usertoken)
+        individualAccounts = Accounts.objects(permission='individual', superior=userDetails.get('userid')).to_json()
+        responseFormat = [{'_id': {'$oid': individual['id']['$oid']}, 'name': individual['name']} for individual in individualAccounts]
+        return {
+            'data': responseFormat,
+            'error': None
+        }
 
     except:
         return ErrorGen.invalidRequestError(statusCode=500)

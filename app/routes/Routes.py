@@ -144,7 +144,7 @@ def retrieveUserOPCR():
 
 @app.route('/head/individual')
 def retrieveIndividualAssigned():
-    return {}
+    return Head.retrieveIndividuals()
 
 @app.after_request
 def add_headers(response):
