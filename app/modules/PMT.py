@@ -154,3 +154,39 @@ def write_remark(id):
     return {
         'message': "Remarks written successfully"
     }
+
+# retrieves all the offices from the campus assigned to this user
+def getOfficeReport():
+    tokenStatus = Sessions.requestTokenCheck('pmt')
+    if (tokenStatus != None): return tokenStatus
+
+    pmtAccountInfo = Sessions.getSessionInfo(request.headers.get('Authorization'))
+    campusAssigned = json.loads(Campuses.objects().to_json())
+    assigned = False
+
+    # manually search through array
+    for campus in campusAssigned:
+        if (pmtAccountInfo['userid'] in campus['pmt']):
+            campusAssigned = campus
+            assigned = True
+            break
+
+    if (not assigned): return ErrorGen.invalidRequestError(error='UnassignedPMTAccount', statusCode=404)
+    headAccounts = [office['head'] for office in campusAssigned['offices']]
+    officesOpcr = []
+
+    for headID in headAccounts:
+        retrievedOPCR = json.loads(OPCR.objects(owner=headID).to_json())
+        for opcr in retrievedOPCR:
+            for target in opcr['targets']:
+                officesOpcr.append({
+                    '_id': target['_id'],
+                    'name': target['name'],
+                    'progress': 50.0,
+                    'status': 'in progress'
+                })
+
+    return {
+        'data': officesOpcr,
+        'error': None
+    }

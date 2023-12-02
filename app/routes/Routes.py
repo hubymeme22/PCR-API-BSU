@@ -137,7 +137,7 @@ def write_remark(id):
 
 @app.route('/pmt/office/report')
 def getPmtOFficeReport():
-    return {}
+    return PMT.getOfficeReport()
 
 ###########################################
 #   Head functionalities implementation   #

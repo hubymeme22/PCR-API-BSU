@@ -2,7 +2,7 @@ from mongoengine import Document, EmbeddedDocument, EmbeddedDocumentField, Strin
 from bson.objectid import ObjectId
 
 class Accounts(Document):
-    name = StringField(max_length=50, required=True)    
+    name = StringField(max_length=50, required=True)
     email = StringField(max_length=50, required=True)
     username = StringField(max_length=50, required=True)
     password = StringField(max_length=50, required=True)
