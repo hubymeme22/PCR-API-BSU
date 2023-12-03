@@ -155,6 +155,37 @@ def write_remark(id):
         'message': "Remarks written successfully"
     }
 
+# adds a remark for specific mfo and success indicator id
+def addRemarks(mfoid):
+    tokenStatus = Sessions.requestTokenCheck('pmt')
+    if (tokenStatus != None): return tokenStatus
+
+    remarkData: list = request.get_json(force=True)
+    for remark in remarkData:
+        missed = ErrorGen.parameterCheck(['successID', 'remarks'], remark)
+        if (len(missed) > 0): return ErrorGen.invalidRequestError(error=f'MissedParams={missed}')
+
+    latestOPCR = OPCR.objects(archived=False).first()
+    if (latestOPCR == None): return ErrorGen.invalidRequestError(error='NonexistentOPCR', statusCode=404)
+
+    # retrieves the latest opcr targets and update its remarks
+    parsedLatestOPCR = json.loads(latestOPCR)['targets']
+    for i in range(len(parsedLatestOPCR)):
+        if (mfoid == parsedLatestOPCR[i]['_id']['$oid']):
+
+            # success indicator matching
+            for j in range(len(parsedLatestOPCR[i]['success'])):
+                for remark in remarkData:
+                    if (parsedLatestOPCR[i]['success'][j]['_id']['$oid'] == remark['successID']):
+                        parsedLatestOPCR[i]['success'][j]['remarks'].append(remark['remarks'])
+
+    latestOPCR.update(targets=parsedLatestOPCR)
+    return {
+        'data': None,
+        'added': True,
+        'error': None
+    }
+
 # retrieves all the offices from the campus assigned to this user
 def getOfficeReport():
     tokenStatus = Sessions.requestTokenCheck('pmt')

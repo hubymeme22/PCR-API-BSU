@@ -136,9 +136,15 @@ def get_campus():
 def campus_by_id(id):
     return PMT.campus_by_id(id)
 
+# update remark by opcrid
 @app.route('/pmt/update/opcr/<id>', methods = ['POST'])
 def write_remark(id):
     return PMT.write_remark(id)
+
+# update remark by mfo and success indicator ids
+@app.route('/pmt/remark/<mfoid>')
+def addRemarks(mfoid):
+    return PMT.addRemarks(mfoid)
 
 @app.route('/pmt/office/report')
 def getPmtOFficeReport():
@@ -169,5 +175,6 @@ def add_headers(response):
         response = make_response()
         response.headers.add('Access-Control-Allow-Origin', '*')
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, PUT, GET, OPTIONS, DELETE')
         return response
     return response
