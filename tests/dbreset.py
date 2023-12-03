@@ -32,7 +32,7 @@ def dbReset():
         Accounts(
             name='admin',
             username='admin',
-            email='admin',
+            email='admin@g.batstate-u.edu.ph',
             password='admin',
             permission='admin').save()
         print('[*] Appending default admin credentials... ok')
