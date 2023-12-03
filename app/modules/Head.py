@@ -29,37 +29,75 @@ def addMFO():
             return ErrorGen.invalidRequestError(error=f'MissingParams={missingArgs}')
 
     # retrieve user info based on session
-    # try:
-    userSessionInfo = Sessions.getSessionInfo(userToken)
-    latestOPCR = OPCR.objects(owner=userSessionInfo['userid'], archived=False).first()
+    try:
+        userSessionInfo = Sessions.getSessionInfo(userToken)
+        latestOPCR = OPCR.objects(owner=userSessionInfo['userid'], archived=False).first()
 
-    if (latestOPCR == None):
-        newOpcr = OPCR(targets=[opcr], owner=userSessionInfo['userid'])
-        newOpcr.save()
+        if (latestOPCR == None):
+            newOpcr = OPCR(targets=[opcr], owner=userSessionInfo['userid'])
+            newOpcr.save()
+            return { 'added': True, 'data': None, 'error': None }
+
+        # format the target before appending new value
+        convertedTargets = []
+        parsedOPCR = json.loads(latestOPCR.to_json())
+        for target in parsedOPCR['targets']:
+            target.update({'_id': ObjectId(target['_id']['$oid'])})
+
+            for sidx in range(len(target['success'])):
+                target['success'][sidx]['_id'] = ObjectId(target['success'][sidx]['_id']['$oid'])
+            convertedTargets.append(target)
+
+
+        # add a new target
+        convertedTargets.append(opcr)
+        latestOPCR.update(targets=convertedTargets)
         return { 'added': True, 'data': None, 'error': None }
 
-    # format the target before appending new value
-    convertedTargets = []
-    parsedOPCR = json.loads(latestOPCR.to_json())
-    for target in parsedOPCR['targets']:
-        target.update({'_id': ObjectId(target['_id']['$oid'])})
-
-        for sidx in range(len(target['success'])):
-            target['success'][sidx]['_id'] = ObjectId(target['success'][sidx]['_id']['$oid'])
-        convertedTargets.append(target)
-
-
-    # add a new target
-    convertedTargets.append(opcr)
-    latestOPCR.update(targets=convertedTargets)
-    return { 'added': True, 'data': None, 'error': None }
-
-    # except Exception as e:
-    #     return ErrorGen.invalidRequestError(error=str(e), statusCode=500)
+    except Exception as e:
+        return ErrorGen.invalidRequestError(error=str(e), statusCode=500)
 
 # generates a new opcr for the user
 def addBulkMFO():
-    return {}
+    tokenStatus = Sessions.requestTokenCheck('head')
+    if (tokenStatus != None): return tokenStatus
+
+    userToken = request.headers.get('Authorization')
+    targetList = request.get_json(force=True)
+
+    for target in targetList:
+        missingArgs = ErrorGen.parameterCheck(['name', 'success'], target)
+        if (len(missingArgs) > 0): return ErrorGen.invalidRequestError(error=f'MissingParams={missingArgs}')
+
+        for success in target['success']:
+            missingArgs = ErrorGen.parameterCheck(['indicator', 'budget', 'division', 'accomplishment', 'rating', 'assigned_to'], success)
+            if (len(missingArgs) > 0): return ErrorGen.invalidRequestError(error=f'MissingParams=success->{missingArgs}')
+
+    userDetails = Sessions.getSessionInfo(userToken)
+    userOPCR = OPCR.objects(owner=userDetails['userid'], archived=False).first()
+    if (userOPCR == None):
+        newOpcr = OPCR(targets=targetList, owner=userToken['userid'])
+        newOpcr.save()
+        return {
+            'added': True,
+            'error': None
+        }
+
+    # update the object id values for target and child
+    userOpcrParsed = json.loads(userOPCR.to_json())
+    newTargetValue = []
+    for target in userOpcrParsed['targets']:
+        target.update({'_id': ObjectId(target['_id']['$oid'])})
+        for successIndex, success in enumerate(target['success']):
+            target['success'][successIndex].update({ '_id': ObjectId(success['_id']['$oid']) })
+        newTargetValue.append(target)
+
+    newTargetValue += targetList
+    userOPCR.update(targets=newTargetValue)
+    return {
+        'added': True,
+        'error': None
+    }
 
 def createOPCR(opcrid):
     # implement soon
