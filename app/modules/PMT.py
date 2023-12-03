@@ -169,15 +169,19 @@ def addRemarks(opcrid, mfoid):
     if (latestOPCR == None): return ErrorGen.invalidRequestError(error='NonexistentOPCR', statusCode=404)
 
     # retrieves the latest opcr targets and update its remarks
-    parsedLatestOPCR = json.loads(latestOPCR)['targets']
+    parsedLatestOPCR = json.loads(latestOPCR.to_json())['targets']
     for i in range(len(parsedLatestOPCR)):
         if (mfoid == parsedLatestOPCR[i]['_id']['$oid']):
-
-            # success indicator matching
             for j in range(len(parsedLatestOPCR[i]['success'])):
                 for remark in remarkData:
                     if (parsedLatestOPCR[i]['success'][j]['_id']['$oid'] == remark['successID']):
                         parsedLatestOPCR[i]['success'][j]['remarks'].append(remark['remarks'])
+
+    # parse each object id for opcr target values
+    for i in range(len(parsedLatestOPCR)):
+        parsedLatestOPCR[i]['_id'] = ObjectId(parsedLatestOPCR[i]['_id']['$oid'])
+        for j in range(len(parsedLatestOPCR[i]['success'])):
+            parsedLatestOPCR[i]['success'][j]['_id'] = ObjectId(parsedLatestOPCR[i]['success'][j]['_id']['$oid'])
 
     latestOPCR.update(targets=parsedLatestOPCR)
     return {
@@ -204,19 +208,52 @@ def getOfficeReport():
 
     if (not assigned): return ErrorGen.invalidRequestError(error='UnassignedPMTAccount', statusCode=404)
     headAccounts = [(office['_id']['$oid'], office['name'], office['head']) for office in campusAssigned['offices']]
-    officesOpcr = []
+    officesOpcrReport = []
 
     for officeid, officeName, headID in headAccounts:
         retrievedOPCR = OPCR.objects(owner=headID, archived=False).first()
         if (retrievedOPCR == None): continue
 
         retrievedOPCR = json.loads(retrievedOPCR.to_json())
-        officesOpcr.append({
+        officesOpcrReport.append({
             '_id': { '$oid': officeid },
             'name': officeName,
             'status': retrievedOPCR['status'],
             'progress': 50.0
         })
+
+
+    return {
+        'data': officesOpcrReport,
+        'error': None
+    }
+
+# retrieves all the offices from the campus assigned to this user
+def getOfficeOPCR():
+    tokenStatus = Sessions.requestTokenCheck('pmt')
+    if (tokenStatus != None): return tokenStatus
+
+    pmtAccountInfo = Sessions.getSessionInfo(request.headers.get('Authorization'))
+    campusAssigned = json.loads(Campuses.objects().to_json())
+    assigned = False
+
+    # manually search through array
+    for campus in campusAssigned:
+        if (pmtAccountInfo['userid'] in campus['pmt']):
+            campusAssigned = campus
+            assigned = True
+            break
+
+    if (not assigned): return ErrorGen.invalidRequestError(error='UnassignedPMTAccount', statusCode=404)
+    headAccounts = [office['head'] for office in campusAssigned['offices']]
+    officesOpcr = []
+
+    for headID in headAccounts:
+        retrievedOPCR = OPCR.objects(owner=headID, archived=False).first()
+        if (retrievedOPCR == None): continue
+
+        retrievedOPCR = json.loads(retrievedOPCR.to_json())
+        officesOpcr.append(retrievedOPCR)
 
 
     return {

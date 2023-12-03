@@ -142,13 +142,17 @@ def write_remark(id):
     return PMT.write_remark(id)
 
 # update remark by mfo and success indicator ids
-@app.route('/pmt/remark/<opcrid>/<mfoid>')
+@app.route('/pmt/remark/<opcrid>/<mfoid>', methods=['PUT', 'POST'])
 def addRemarks(opcrid, mfoid):
     return PMT.addRemarks(opcrid, mfoid)
 
 @app.route('/pmt/office/report')
-def getPmtOFficeReport():
+def getPmtOfficeReport():
     return PMT.getOfficeReport()
+
+@app.route('/pmt/office/opcr')
+def getPmtOfficeOPCR():
+    return PMT.getOfficeOPCR()
 
 ###########################################
 #   Head functionalities implementation   #
