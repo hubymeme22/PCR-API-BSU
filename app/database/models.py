@@ -35,6 +35,7 @@ class OPCR(Document):
     targets = ListField(EmbeddedDocumentField(Targets))
     accepted = BooleanField(default=False)
     archived = BooleanField(default=False)
+    status = StringField(default='in progress')
     owner = StringField()
 
 

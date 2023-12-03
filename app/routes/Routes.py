@@ -142,9 +142,9 @@ def write_remark(id):
     return PMT.write_remark(id)
 
 # update remark by mfo and success indicator ids
-@app.route('/pmt/remark/<mfoid>')
-def addRemarks(mfoid):
-    return PMT.addRemarks(mfoid)
+@app.route('/pmt/remark/<opcrid>/<mfoid>')
+def addRemarks(opcrid, mfoid):
+    return PMT.addRemarks(opcrid, mfoid)
 
 @app.route('/pmt/office/report')
 def getPmtOFficeReport():

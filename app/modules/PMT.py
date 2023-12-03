@@ -156,7 +156,7 @@ def write_remark(id):
     }
 
 # adds a remark for specific mfo and success indicator id
-def addRemarks(mfoid):
+def addRemarks(opcrid, mfoid):
     tokenStatus = Sessions.requestTokenCheck('pmt')
     if (tokenStatus != None): return tokenStatus
 
@@ -165,7 +165,7 @@ def addRemarks(mfoid):
         missed = ErrorGen.parameterCheck(['successID', 'remarks'], remark)
         if (len(missed) > 0): return ErrorGen.invalidRequestError(error=f'MissedParams={missed}')
 
-    latestOPCR = OPCR.objects(archived=False).first()
+    latestOPCR = OPCR.objects(id=opcrid, archived=False).first()
     if (latestOPCR == None): return ErrorGen.invalidRequestError(error='NonexistentOPCR', statusCode=404)
 
     # retrieves the latest opcr targets and update its remarks
@@ -203,19 +203,21 @@ def getOfficeReport():
             break
 
     if (not assigned): return ErrorGen.invalidRequestError(error='UnassignedPMTAccount', statusCode=404)
-    headAccounts = [office['head'] for office in campusAssigned['offices']]
+    headAccounts = [(office['_id']['$oid'], office['name'], office['head']) for office in campusAssigned['offices']]
     officesOpcr = []
 
-    for headID in headAccounts:
-        retrievedOPCR = json.loads(OPCR.objects(owner=headID).to_json())
-        for opcr in retrievedOPCR:
-            for target in opcr['targets']:
-                officesOpcr.append({
-                    '_id': target['_id'],
-                    'name': target['name'],
-                    'progress': 50.0,
-                    'status': 'in progress'
-                })
+    for officeid, officeName, headID in headAccounts:
+        retrievedOPCR = OPCR.objects(owner=headID, archived=False).first()
+        if (retrievedOPCR == None): continue
+
+        retrievedOPCR = json.loads(retrievedOPCR.to_json())
+        officesOpcr.append({
+            '_id': { '$oid': officeid },
+            'name': officeName,
+            'status': retrievedOPCR['status'],
+            'progress': 50.0
+        })
+
 
     return {
         'data': officesOpcr,
