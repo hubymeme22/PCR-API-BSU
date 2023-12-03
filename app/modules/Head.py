@@ -29,28 +29,37 @@ def addMFO():
             return ErrorGen.invalidRequestError(error=f'MissingParams={missingArgs}')
 
     # retrieve user info based on session
-    try:
-        userSessionInfo = Sessions.getSessionInfo(userToken)
-        latestOPCR = OPCR.objects().first()
+    # try:
+    userSessionInfo = Sessions.getSessionInfo(userToken)
+    latestOPCR = OPCR.objects(owner=userSessionInfo['userid'], archived=False).first()
 
-        if (latestOPCR == None):
-            newOpcr = OPCR(targets=[opcr], owner=userSessionInfo['userid'])
-            newOpcr.save()
-            return { 'added': True, 'data': None, 'error': None }
-
-        # format the target before appending new value
-        convertedTargets = []
-        for target in latestOPCR['targets']:
-            target.update({'_id': ObjectId(target['_id']['$oid'])})
-            convertedTargets.append(target)
-
-        # add a new target
-        convertedTargets.append(opcr)
-        latestOPCR.update(target=convertedTargets)
+    if (latestOPCR == None):
+        newOpcr = OPCR(targets=[opcr], owner=userSessionInfo['userid'])
+        newOpcr.save()
         return { 'added': True, 'data': None, 'error': None }
 
-    except Exception as e:
-        return ErrorGen.invalidRequestError(error=str(e), statusCode=500)
+    # format the target before appending new value
+    convertedTargets = []
+    parsedOPCR = json.loads(latestOPCR.to_json())
+    for target in parsedOPCR['targets']:
+        target.update({'_id': ObjectId(target['_id']['$oid'])})
+
+        for sidx in range(len(target['success'])):
+            target['success'][sidx]['_id'] = ObjectId(target['success'][sidx]['_id']['$oid'])
+        convertedTargets.append(target)
+
+
+    # add a new target
+    convertedTargets.append(opcr)
+    latestOPCR.update(targets=convertedTargets)
+    return { 'added': True, 'data': None, 'error': None }
+
+    # except Exception as e:
+    #     return ErrorGen.invalidRequestError(error=str(e), statusCode=500)
+
+# generates a new opcr for the user
+def addBulkMFO():
+    return {}
 
 def createOPCR(opcrid):
     # implement soon
@@ -64,8 +73,14 @@ def retrieveUserOPCR():
     usertoken: str = request.headers.get('Authorization')
     try:
         userDetails = Sessions.getSessionInfo(usertoken)
-        userOpcr = OPCR.objects(owner=userDetails['userid'], archived=False).first()
-        if (userOpcr == None): return {}
+        userOpcr = OPCR.objects(owner=userDetails['userid'], archived=False)
+
+        if (userOpcr == None):
+            print('Userid:', userDetails['userid'])
+            print('No opcr retrieved')
+            print(json.loads(OPCR.objects().to_json()))
+            return {}
+
         return {
             'data': json.loads(userOpcr.to_json()),
             'error': None
