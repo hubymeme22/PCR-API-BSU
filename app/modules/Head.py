@@ -29,62 +29,62 @@ def addMFO():
             return ErrorGen.invalidRequestError(error=f'MissingParams={missingArgs}')
 
     # retrieve user info based on session
-    # try:
-    userSessionInfo = Sessions.getSessionInfo(userToken)
-    latestOPCR = OPCR.objects(owner=userSessionInfo['userid'], archived=False).first()
+    try:
+        userSessionInfo = Sessions.getSessionInfo(userToken)
+        latestOPCR = OPCR.objects(owner=userSessionInfo['userid'], archived=False).first()
 
-    if (latestOPCR == None):
-        if ('_id' in opcr): del opcr['_id']
-        OPCR(targets=[opcr], owner=userSessionInfo['userid']).save()
-        return { 'added': True, 'data': None, 'error': None }
+        if (latestOPCR == None):
+            if ('_id' in opcr): del opcr['_id']
+            OPCR(targets=[opcr], owner=userSessionInfo['userid']).save()
+            return { 'added': True, 'data': None, 'error': None }
 
-    # format the target before appending new value
-    updateFlagSet = False
-    updatedCount  = 0
-    convertedTargets = []
-    targetOpcrID = opcr['_id']['$oid']
-    parsedOPCR = json.loads(latestOPCR.to_json())
-
-    for target in parsedOPCR['targets']:
-        updateFlagSet = (target['_id']['$oid'] == targetOpcrID)
-        updatedCount += updateFlagSet
-
-        target.update({'_id': ObjectId(target['_id']['$oid'])})
-        if (updateFlagSet): target.update({'name': opcr['name']})
-
-        for sidx, success in enumerate(target['success']):
-            dbsuccessid = success['_id']['$oid']
-            target['success'][sidx].update({'_id': ObjectId(dbsuccessid)})
-
-            # also update values if there's a matched id
-            if (updateFlagSet):
-                for successpayload in opcr['success']:
-                    if (successpayload['_id']['$oid'] == dbsuccessid):
-                        target['success'][sidx].update({
-                            'indicator': successpayload['indicator'],
-                            'budget': successpayload['budget'],
-                            'division': successpayload['division'],
-                            'accomplishment': successpayload['accomplishment'],
-                            'rating': successpayload['rating'],
-                            'remarks': successpayload['remarks'],
-                            'assigned_to': successpayload['assigned_to']
-                        })
-
+        # format the target before appending new value
         updateFlagSet = False
-        convertedTargets.append(target)
+        updatedCount  = 0
+        convertedTargets = []
+        targetOpcrID = opcr['_id']['$oid']
+        parsedOPCR = json.loads(latestOPCR.to_json())
 
-    # update-only operation
-    if (updatedCount > 0):
+        for target in parsedOPCR['targets']:
+            updateFlagSet = (target['_id']['$oid'] == targetOpcrID)
+            updatedCount += updateFlagSet
+
+            target.update({'_id': ObjectId(target['_id']['$oid'])})
+            if (updateFlagSet): target.update({'name': opcr['name']})
+
+            for sidx, success in enumerate(target['success']):
+                dbsuccessid = success['_id']['$oid']
+                target['success'][sidx].update({'_id': ObjectId(dbsuccessid)})
+
+                # also update values if there's a matched id
+                if (updateFlagSet):
+                    for successpayload in opcr['success']:
+                        if (successpayload['_id']['$oid'] == dbsuccessid):
+                            target['success'][sidx].update({
+                                'indicator': successpayload['indicator'],
+                                'budget': successpayload['budget'],
+                                'division': successpayload['division'],
+                                'accomplishment': successpayload['accomplishment'],
+                                'rating': successpayload['rating'],
+                                'remarks': successpayload['remarks'],
+                                'assigned_to': successpayload['assigned_to']
+                            })
+
+            updateFlagSet = False
+            convertedTargets.append(target)
+
+        # update-only operation
+        if (updatedCount > 0):
+            latestOPCR.update(targets=convertedTargets)
+            return { 'added': True, 'data': None, 'error': None }
+
+        # new ocpr added operation
+        convertedTargets.append(opcr)
         latestOPCR.update(targets=convertedTargets)
         return { 'added': True, 'data': None, 'error': None }
 
-    # new ocpr added operation
-    convertedTargets.append(opcr)
-    latestOPCR.update(targets=convertedTargets)
-    return { 'added': True, 'data': None, 'error': None }
-
-    # except Exception as e:
-    #     return ErrorGen.invalidRequestError(error=str(e), statusCode=500)
+    except Exception as e:
+        return ErrorGen.invalidRequestError(error=str(e), statusCode=500)
 
 # generates a new opcr for the user
 def addBulkMFO():
