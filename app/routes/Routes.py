@@ -146,6 +146,10 @@ def write_remark(id):
 def addRemarks(opcrid, mfoid):
     return PMT.addRemarks(opcrid, mfoid)
 
+@app.route('/pmt/bulk/remark/<opcrid>', methods=['PUT', 'POST'])
+def addBulkRemarks(opcrid):
+    return PMT.addBulkRemarks(opcrid)
+
 @app.route('/pmt/office/report')
 def getPmtOfficeReport():
     return PMT.getOfficeReport()

@@ -190,6 +190,54 @@ def addRemarks(opcrid, mfoid):
         'error': None
     }
 
+def addBulkRemarks(opcrid):
+    tokenStatus = Sessions.requestTokenCheck('pmt')
+    if (tokenStatus != None): return tokenStatus
+
+    targetRemarkData: list = request.get_json(force=True)
+    for remark in targetRemarkData:
+        missed = ErrorGen.parameterCheck(['targetID', 'remarks'], remark)
+        if (len(missed) > 0): return ErrorGen.invalidRequestError(error=f'MissedParams={missed}')
+
+        for successRemark in remark['remarks']:
+            missed = ErrorGen.parameterCheck(['successID', 'remarks'], successRemark)
+            if (len(missed) > 0): return ErrorGen.invalidRequestError(error=f'MissedParams={missed}')
+
+    latestOPCR = OPCR.objects(id=opcrid, archived=False).first()
+    if (latestOPCR == None): return ErrorGen.invalidRequestError(error='NonexistentOPCR', statusCode=404)
+
+    parsedLatestOPCR = json.loads(latestOPCR.to_json())
+    parsedLatestTargets = parsedLatestOPCR['targets']
+
+    for idt, dbtarget in enumerate(parsedLatestTargets):
+        dbtargetid = dbtarget['_id']['$oid']
+        parsedLatestTargets[idt]['_id'] = ObjectId(dbtargetid)
+
+        remarkToBeUpdated = False
+        for localtarget in targetRemarkData:
+            if (localtarget['targetID'] == dbtargetid):
+                remarkToBeUpdated = True
+                break
+
+        for ids, dbsuccess in enumerate(dbtarget['success']):
+            dbsuccessid = dbsuccess['_id']['$oid']
+            parsedLatestTargets[idt]['success'][ids]['_id'] = ObjectId(dbsuccessid)
+
+            if (remarkToBeUpdated):
+                for localsuccess in localtarget['remarks']:
+                    if (localsuccess['successID'] == dbsuccessid):
+                        parsedLatestTargets[idt]['success'][ids]['remarks'].append(localsuccess['remarks'])
+
+        remarkToBeUpdated = False
+
+    latestOPCR.update(targets=parsedLatestTargets)
+    return {
+        'data': None,
+        'added': True,
+        'error': None
+    }
+
+
 # retrieves all the offices from the campus assigned to this user
 def getOfficeReport():
     tokenStatus = Sessions.requestTokenCheck('pmt')
