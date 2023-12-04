@@ -260,3 +260,29 @@ def getOfficeOPCR():
         'data': officesOpcr,
         'error': None
     }
+
+# retrieves the opcr of the office
+def getOpcrByOfficeID(officeid):
+    tokenStatus = Sessions.requestTokenCheck('pmt')
+    if (tokenStatus != None): return tokenStatus
+
+    pmtAccountInfo = Sessions.getSessionInfo(request.headers.get('Authorization'))
+    campusAssigned = Campuses.objects()
+
+    if (len(campusAssigned) == 0):
+        return ErrorGen.invalidRequestError(error='NoCampusAssigned', statusCode=500)
+
+    campusAssigned = json.loads(campusAssigned.to_json())
+    for campus in campusAssigned:
+        if (pmtAccountInfo['userid'] in campus['pmt']):
+            for office in campus['offices']:
+                if (officeid == office['_id']['$oid']):
+                    if (office['head'] == ''): return ErrorGen.invalidRequestError(
+                        error='OfficeNoHeadAssigned',
+                        statusCode=418)
+
+                    latestOpcr = OPCR.objects(owner=office['head'], archived=False).first()
+                    if (latestOpcr == None): return { 'data': [], 'error': None }
+                    return { 'data': json.loads(latestOpcr.to_json()), 'error': None }
+
+    return ErrorGen.invalidRequestError()

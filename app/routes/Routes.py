@@ -154,6 +154,10 @@ def getPmtOfficeReport():
 def getPmtOfficeOPCR():
     return PMT.getOfficeOPCR()
 
+@app.route('/pmt/opcr/office/<officeid>')
+def getOpcrByOfficeId(officeid):
+    return PMT.getOpcrByOfficeID(officeid)
+
 ###########################################
 #   Head functionalities implementation   #
 ###########################################
