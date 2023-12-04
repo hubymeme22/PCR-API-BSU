@@ -111,7 +111,7 @@ def retrieveUserOPCR():
     usertoken: str = request.headers.get('Authorization')
     try:
         userDetails = Sessions.getSessionInfo(usertoken)
-        userOpcr = OPCR.objects(owner=userDetails['userid'], archived=False)
+        userOpcr = OPCR.objects(owner=userDetails['userid'], archived=False).first()
 
         if (userOpcr == None):
             print('Userid:', userDetails['userid'])
@@ -119,10 +119,40 @@ def retrieveUserOPCR():
             print(json.loads(OPCR.objects().to_json()))
             return {}
 
+        opcrParsed = json.loads(userOpcr.to_json())
         return {
-            'data': json.loads(userOpcr.to_json()),
+            'data': opcrParsed['targets'],
             'error': None
         }
+
+    except Exception as e:
+        print(e)
+        return ErrorGen.invalidRequestError(statusCode=500)
+
+# retrieves the opcr specified
+def retrieveSingleOPCR(id):
+    tokenStatus = Sessions.requestTokenCheck('head')
+    if (tokenStatus != None): return tokenStatus
+
+    usertoken: str = request.headers.get('Authorization')
+    try:
+        userDetails = Sessions.getSessionInfo(usertoken)
+        userOpcr = OPCR.objects(owner=userDetails['userid'], archived=False).first()
+
+        if (userOpcr == None): return {
+            'data': {},
+            'error': None
+        }
+
+        userOpcr = json.loads(userOpcr.to_json())
+        for target in userOpcr['targets']:
+            print(target['_id'])
+            if (target['_id']['$oid'] == id):
+                return {
+                    'data': target,
+                    'error': None
+                }
+        return ErrorGen.invalidRequestError(error='NonexistentTargetID', statusCode=404)
 
     except Exception:
         return ErrorGen.invalidRequestError(statusCode=500)

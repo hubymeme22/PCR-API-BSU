@@ -169,9 +169,14 @@ def createMFO():
 def createBulkMFO():
     return Head.addBulkMFO()
 
+@app.route('/head/opcr/<id>')
+def retrieveSingleOpcr(id):
+    return Head.retrieveSingleOPCR(id)
+
 @app.route('/head/opcr')
 def retrieveUserOPCR():
     return Head.retrieveUserOPCR()
+
 
 @app.route('/head/individual')
 def retrieveIndividualAssigned():
