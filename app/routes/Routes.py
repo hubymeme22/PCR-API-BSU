@@ -181,10 +181,13 @@ def retrieveSingleOpcr(id):
 def retrieveUserOPCR():
     return Head.retrieveUserOPCR()
 
-
 @app.route('/head/individual')
 def retrieveIndividualAssigned():
     return Head.retrieveIndividuals()
+
+@app.route('/head/submit/opcr', methods=['GET', 'PATCH'])
+def submitOpcr():
+    return Head.submitOpcrToPmt()
 
 @app.after_request
 def add_headers(response):

@@ -202,3 +202,30 @@ def retrieveIndividuals():
         }
     except:
         return ErrorGen.invalidRequestError(statusCode=500)
+
+# submits the opcr to pmt and mark as in progess
+def submitOpcrToPmt():
+    tokenStatus = Sessions.requestTokenCheck('head')
+    if (tokenStatus != None): return tokenStatus
+
+    usertoken: str = request.headers.get('Authorization')
+    try:
+        userDetails: dict = Sessions.getSessionInfo(usertoken)
+        latestOpcr = OPCR.objects(owner=userDetails['userid'], archived=False).first()
+        if (latestOpcr == None): return ErrorGen.invalidRequestError(error='NoOPCRAssigned', statusCode=418)
+
+        latestOpcrParsed = json.loads(latestOpcr.to_json())
+        if (latestOpcrParsed['status'] == 'calibrating'):
+            return {'submited': False, 'error': 'AlreadyCalibrating'}
+
+        if (latestOpcrParsed['status'] == 'calibrated'):
+            return {'submited': False, 'error': 'AlreadyCalibrated'}
+
+        latestOpcr.update(status='calibrating')
+        return {
+            'submited': True,
+            'error': None
+        }
+
+    except:
+        return ErrorGen.invalidRequestError(statusCode=500)
