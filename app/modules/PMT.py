@@ -248,7 +248,7 @@ def getBulkRemarkTemplate(opcrid):
             error='NonexistentOPCRID',
             statusCode=404)
 
-    targetOpcr = json.loads(targetOpcr).get('targets')
+    targetOpcr = json.loads(targetOpcr.to_json()).get('targets')
     templateFormat = []
 
     for target in targetOpcr:
