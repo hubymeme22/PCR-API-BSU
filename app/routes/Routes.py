@@ -150,6 +150,10 @@ def addRemarks(opcrid, mfoid):
 def addBulkRemarks(opcrid):
     return PMT.addBulkRemarks(opcrid)
 
+@app.route('/pmt/bulk/template/remark/<opcrid>')
+def getBulkRemarkTemplate(opcrid):
+    return PMT.getBulkRemarkTemplate(opcrid)
+
 @app.route('/pmt/office/report')
 def getPmtOfficeReport():
     return PMT.getOfficeReport()

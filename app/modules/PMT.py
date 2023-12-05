@@ -237,6 +237,29 @@ def addBulkRemarks(opcrid):
         'error': None
     }
 
+# retrieves the template for bulk remarks of specified opcr
+def getBulkRemarkTemplate(opcrid):
+    tokenStatus = Sessions.requestTokenCheck('pmt')
+    if (tokenStatus != None): return tokenStatus
+
+    targetOpcr = OPCR.objects(id=opcrid).first()
+    if (targetOpcr == None):
+        return ErrorGen.invalidRequestError(
+            error='NonexistentOPCRID',
+            statusCode=404)
+
+    targetOpcr = json.loads(targetOpcr).get('targets')
+    templateFormat = []
+
+    for target in targetOpcr:
+        targetid = target['_id']['$oid']
+        successidList = [{'successID': success['_id']['$oid'], 'remarks': ''} for success in target['success']]
+        templateFormat.append({'targetID': targetid, 'remarks': successidList})
+
+    return {
+        'template': templateFormat,
+        'error': None
+    }
 
 # retrieves all the offices from the campus assigned to this user
 def getOfficeReport():
