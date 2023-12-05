@@ -1,6 +1,6 @@
 from flask import request
 from bson.objectid import ObjectId
-from app.database.models import OPCR, Accounts
+from app.database.models import OPCR, Accounts, Campuses
 from app.modules import ErrorGen, Sessions
 import json
 
@@ -35,7 +35,19 @@ def addMFO():
 
         if (latestOPCR == None):
             if ('_id' in opcr): del opcr['_id']
-            OPCR(targets=[opcr], owner=userSessionInfo['userid']).save()
+            savedOpcr = OPCR(targets=[opcr], owner=userSessionInfo['userid']).save()
+            campusAssigned = json.loads(Campuses.objects().to_json())
+
+            # append the opcr id to the office-pmt
+            officeFound = False
+            for campus in campusAssigned:
+                if (officeFound): break
+                for oid, office in enumerate(campus['offices']):
+                    if (office['head'] == userSessionInfo['userid']):
+                        campus['offices'][oid]['opcr'].append(savedOpcr.id)
+                        officeFound = True
+                        break
+
             return { 'added': True, 'data': None, 'error': None }
 
         # format the target before appending new value
@@ -79,6 +91,10 @@ def addMFO():
             return { 'added': True, 'data': None, 'error': None }
 
         # new ocpr added operation
+        del opcr['_id']
+        for sid, success in enumerate(opcr['success']):
+            del opcr['success'][sid]['_id']
+
         convertedTargets.append(opcr)
         latestOPCR.update(targets=convertedTargets)
         return { 'added': True, 'data': None, 'error': None }
@@ -114,17 +130,54 @@ def addBulkMFO():
 
     # update the object id values for target and child
     userOpcrParsed = json.loads(userOPCR.to_json())
-    newTargetValue = []
-    for target in userOpcrParsed['targets']:
-        target.update({'_id': ObjectId(target['_id']['$oid'])})
-        for successIndex, success in enumerate(target['success']):
-            target['success'][successIndex].update({ '_id': ObjectId(success['_id']['$oid']) })
-        newTargetValue.append(target)
+    userOpcrTarget = userOpcrParsed['targets']
+    updateCount = 0
 
-    newTargetValue += targetList
-    userOPCR.update(targets=newTargetValue)
+    for dbti, dbtarget in enumerate(userOpcrTarget):
+        dbtargetid = dbtarget['_id']['$oid']
+        userOpcrTarget[dbti]['_id'] = ObjectId(dbtargetid)
+
+        toBeEditedOpcr = False
+        for localtarget in targetList:
+            if (localtarget['_id']['$oid'] == dbtargetid):
+                toBeEditedOpcr = True
+                updateCount += 1
+                break
+
+        if (toBeEditedOpcr):
+            userOpcrTarget[dbti].update({'name': localtarget['name']})
+
+        for dbsi, dbsuccess in enumerate(dbtarget['success']):
+            dbsuccessid = dbsuccess['_id']['$oid']
+            userOpcrTarget[dbti]['success'][dbsi]['_id'] = ObjectId(dbsuccessid)
+
+            if (toBeEditedOpcr):
+                for localsuccess in localtarget['success']:
+                    if (localsuccess['_id']['$oid'] == dbsuccessid):
+                        userOpcrTarget[dbti]['success'][dbsi].update({
+                                'indicator': localsuccess['indicator'],
+                                'budget': localsuccess['budget'],
+                                'division': localsuccess['division'],
+                                'accomplishment': localsuccess['accomplishment'],
+                                'rating': localsuccess['rating'],
+                                'remarks': localsuccess['remarks'],
+                                'assigned_to': localsuccess['assigned_to']
+                        })
+
+        toBeEditedOpcr = False
+
+    if (updateCount == 0):
+        userOPCR.update(targets=targetList)
+        return {
+            'added': True,
+            'data': None,
+            'error': None
+        }
+
+    userOPCR.update(targets=userOpcrTarget)
     return {
         'added': True,
+        'data': { 'updates': updateCount },
         'error': None
     }
 
