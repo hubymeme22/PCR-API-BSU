@@ -211,11 +211,11 @@ def retrieveUserOPCR():
         opcrParsed = json.loads(userOpcr.to_json())
         return {
             'data': opcrParsed['targets'],
+            'status': opcrParsed['status'],
             'error': None
         }
 
     except Exception as e:
-        print(e)
         return ErrorGen.invalidRequestError(statusCode=500)
 
 # retrieves the opcr specified
