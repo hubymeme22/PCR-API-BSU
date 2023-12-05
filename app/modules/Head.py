@@ -5,111 +5,6 @@ from app.modules import ErrorGen, Sessions
 import json
 
 # generates a new opcr for the user
-def addMFO():
-    tokenStatus = Sessions.requestTokenCheck('head')
-    if (tokenStatus != None): return tokenStatus
-
-    userToken = request.headers.get('Authorization')
-    opcr = request.get_json(force=True)
-
-    # check each parameters in request
-    missingArgs = ErrorGen.parameterCheck(
-        requiredParams=['name', 'success'],
-        jsonRequest=opcr)
-
-    if (len(missingArgs)):
-        return ErrorGen.invalidRequestError(error=f'MissingParams={missingArgs}')
-
-    for success in opcr['success']:
-        missingArgs = ErrorGen.parameterCheck(
-            requiredParams=['indicator', 'budget', 'division', 'accomplishment', 'rating', 'assigned_to'],
-            jsonRequest=success)
-
-        if (len(missingArgs)):
-            return ErrorGen.invalidRequestError(error=f'MissingParams={missingArgs}')
-
-    # retrieve user info based on session
-    try:
-        userSessionInfo = Sessions.getSessionInfo(userToken)
-        latestOPCR = OPCR.objects(owner=userSessionInfo['userid'], archived=False).first()
-
-        if (latestOPCR == None):
-            if ('_id' in opcr): del opcr['_id']
-            savedOpcr = OPCR(targets=[opcr], owner=userSessionInfo['userid']).save()
-            campusAssigned = json.loads(Campuses.objects().to_json())
-
-            # append the opcr id to the office-pmt
-            officeFound = False
-            for campus in campusAssigned:
-                if (officeFound): break
-                for oid, office in enumerate(campus['offices']):
-                    if (office['head'] == userSessionInfo['userid']):
-                        campus['offices'][oid]['opcr'].append(savedOpcr.id)
-                        officeFound = True
-                        break
-
-            return { 'added': True, 'data': None, 'error': None }
-
-        # format the target before appending new value
-        updateFlagSet = False
-        updatedCount  = 0
-        convertedTargets = []
-        targetOpcrID = opcr['_id']['$oid']
-        parsedOPCR = json.loads(latestOPCR.to_json())
-
-        for target in parsedOPCR['targets']:
-            updateFlagSet = (target['_id']['$oid'] == targetOpcrID)
-            updatedCount += updateFlagSet
-
-            target.update({'_id': ObjectId(target['_id']['$oid'])})
-            if (updateFlagSet): target.update({'name': opcr['name']})
-
-            for sidx, success in enumerate(target['success']):
-                dbsuccessid = success['_id']['$oid']
-                target['success'][sidx].update({'_id': ObjectId(dbsuccessid)})
-
-                # also update values if there's a matched id
-                if (updateFlagSet):
-                    for successpayload in opcr['success']:
-                        if (successpayload.get('_id') == None): continue
-                        if (successpayload['_id']['$oid'] == dbsuccessid):
-                            target['success'][sidx].update({
-                                'indicator': successpayload['indicator'],
-                                'budget': successpayload['budget'],
-                                'division': successpayload['division'],
-                                'accomplishment': successpayload['accomplishment'],
-                                'rating': successpayload['rating'],
-                                'remarks': successpayload['remarks'],
-                                'assigned_to': successpayload['assigned_to']
-                            })
-
-            # for new success indicator values
-            if (updateFlagSet):
-                for successpayload in opcr['success']:
-                    if (successpayload.get('_id') == None):
-                        target['success'].append(successpayload)
-
-            updateFlagSet = False
-            convertedTargets.append(target)
-
-        # update-only operation
-        if (updatedCount > 0):
-            latestOPCR.update(targets=convertedTargets)
-            return { 'added': True, 'data': {'updated': updatedCount}, 'error': None }
-
-        # new ocpr added operation
-        del opcr['_id']
-        for sid, success in enumerate(opcr['success']):
-            del opcr['success'][sid]['_id']
-
-        convertedTargets.append(opcr)
-        latestOPCR.update(targets=convertedTargets)
-        return { 'added': True, 'data': None, 'error': None }
-
-    except Exception as e:
-        return ErrorGen.invalidRequestError(error=str(e), statusCode=500)
-
-# generates a new opcr for the user
 def addBulkMFO():
     tokenStatus = Sessions.requestTokenCheck('head')
     if (tokenStatus != None): return tokenStatus
@@ -203,9 +98,6 @@ def retrieveUserOPCR():
         userOpcr = OPCR.objects(owner=userDetails['userid'], archived=False).first()
 
         if (userOpcr == None):
-            print('Userid:', userDetails['userid'])
-            print('No opcr retrieved')
-            print(json.loads(OPCR.objects().to_json()))
             return {}
 
         opcrParsed = json.loads(userOpcr.to_json())

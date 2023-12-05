@@ -10,6 +10,7 @@
     - Hubert
 '''
 from app.modules import Admin, PMT, Head
+from app.module_v2 import Head_v2
 from flask import make_response, request
 from app import app
 
@@ -175,7 +176,7 @@ def createHeadOPCR():
 
 @app.route('/head/add/mfo', methods=['POST'])
 def createMFO():
-    return Head.addMFO()
+    return Head_v2.addMFO()
 
 @app.route('/head/add/bulk/mfo', methods=['POST'])
 def createBulkMFO():
@@ -206,3 +207,11 @@ def add_headers(response):
         response.headers.add('Access-Control-Allow-Methods', 'POST, PUT, GET, OPTIONS, DELETE')
         return response
     return response
+
+#####################################
+#  parameter check implementations  #
+#####################################
+@app.before_request
+def universalRouteParamChecker():
+    if (request.path == '/head/add/mfo'):
+        return Head_v2.checkAddMfoParams()

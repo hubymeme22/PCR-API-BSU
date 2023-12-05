@@ -17,7 +17,7 @@ class Sessions(Document):
 
 # OPCR model
 class _success(EmbeddedDocument):
-    oid = ObjectIdField(required=True, default=ObjectId, unique=True, primary_key=True)
+    oid = ObjectIdField(required=True, default=ObjectId, unique=True, primary_key=True, sparse=True)
     indicator = StringField()
     budget = FloatField()
     division = StringField()
