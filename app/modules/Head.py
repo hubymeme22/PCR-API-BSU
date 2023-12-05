@@ -71,6 +71,7 @@ def addMFO():
                 # also update values if there's a matched id
                 if (updateFlagSet):
                     for successpayload in opcr['success']:
+                        if (successpayload.get('_id') == None): continue
                         if (successpayload['_id']['$oid'] == dbsuccessid):
                             target['success'][sidx].update({
                                 'indicator': successpayload['indicator'],
@@ -82,13 +83,19 @@ def addMFO():
                                 'assigned_to': successpayload['assigned_to']
                             })
 
+            # for new success indicator values
+            if (updateFlagSet):
+                for successpayload in opcr['success']:
+                    if (successpayload.get('_id') == None):
+                        target['success'].append(successpayload)
+
             updateFlagSet = False
             convertedTargets.append(target)
 
         # update-only operation
         if (updatedCount > 0):
             latestOPCR.update(targets=convertedTargets)
-            return { 'added': True, 'data': None, 'error': None }
+            return { 'added': True, 'data': {'updated': updatedCount}, 'error': None }
 
         # new ocpr added operation
         del opcr['_id']
