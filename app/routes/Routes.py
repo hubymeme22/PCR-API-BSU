@@ -178,6 +178,10 @@ def createHeadOPCR():
 def createMFO():
     return Head_v2.addMFO()
 
+@app.route('/head/edit/mfo/<mfoid>', methods=['PUT', 'POST'])
+def updateMFO(mfoid):
+    return Head_v2.updateMFO(mfoid)
+
 @app.route('/head/add/bulk/mfo', methods=['POST'])
 def createBulkMFO():
     return Head.addBulkMFO()
@@ -213,5 +217,6 @@ def add_headers(response):
 #####################################
 @app.before_request
 def universalRouteParamChecker():
-    if (request.path == '/head/add/mfo'):
+    if (request.path == '/head/add/mfo' or
+        request.path == '/head/update/mfo'):
         return Head_v2.checkAddMfoParams()

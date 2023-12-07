@@ -5,6 +5,7 @@ import os
 
 load_dotenv()
 DATABASE_NAME = os.getenv('MONGODB_DB')
+# DBConnection: MongoClient = MongoClient("localhost", 27017)
 DBConnection: MongoClient = MongoClient(f"mongodb+srv://{os.getenv('MONGODB_USER')}:{os.getenv('MONGODB_PW')}@{os.getenv('MONGODB_HOST')}/?retryWrites=true&w=majority&appName=AtlasApp")
 
 # All collections connections
@@ -77,6 +78,20 @@ class OPCRFunctionalities:
             'status': 'in progress'
         })
 
+    def updateMFOByID(opcrid: str, mfoid: str, update: dict):
+        try:
+            return OPCRConnection.update_many(
+                {
+                    '_id': ObjectId(opcrid),
+                    'targets._id': ObjectId(mfoid)
+                },
+                { '$set': { 'targets.$': update }},
+                upsert=True)
+        except Exception as e:
+            print(e)
+            return None
+
+
 ###################################
 #  HEAD DATABASE FUNCTIONALITIES  #
 ###################################
@@ -104,3 +119,13 @@ class HeadFunctionalities:
         mfodata = formatObjectValues(mfodata)
         mfodata['success'] = [formatObjectValues(success, 'oid') for success in mfodata['success']]
         return OPCRFunctionalities.createOpcrForUser(userid, mfodata)
+
+    def updateMFO(userid: str, mfoid: str, mfodata: dict):
+        mfodata = formatObjectValues(mfodata)
+        mfodata['success'] = [formatObjectValues(success, 'oid') for success in mfodata['success']]
+
+        headOpcrData = HeadFunctionalities.getOpcrData(userid)
+        if (headOpcrData == None): return
+
+        headOpcrID = headOpcrData['_id']
+        return OPCRFunctionalities.updateMFOByID(headOpcrID, mfoid, mfodata)

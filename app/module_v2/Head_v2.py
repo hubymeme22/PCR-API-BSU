@@ -54,3 +54,28 @@ def addMFO():
         return ErrorGen.invalidRequestError(
             error=str(e),
             statusCode=500)
+
+def updateMFO(mfoid: str):
+    tokenStatus = Sessions.requestTokenCheck('head')
+    if (tokenStatus != None):
+        return tokenStatus
+
+    userInfos = Sessions.getSessionInfo(request.headers.get('Authorization'))
+    targetValues = request.get_json(force=True)
+
+    try:
+        updated = HeadFunctionalities.updateMFO(userInfos['userid'], mfoid, targetValues)
+        if (updated == None): return ErrorGen.invalidRequestError(
+            error='InvalidID',
+            statusCode=418)
+
+        return {
+            'updated': True,
+            'data': {},
+            'error': None
+        }
+
+    except Exception as e:
+        return ErrorGen.invalidRequestError(
+            error=str(e),
+            statusCode=500)
