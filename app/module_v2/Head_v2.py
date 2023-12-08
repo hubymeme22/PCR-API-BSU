@@ -1,5 +1,6 @@
 from app.database.dbConnection import HeadFunctionalities, CampusesFunctionalities
 from app.modules import Sessions, ErrorGen
+from app.module_v2 import Utils
 from flask import request
 
 #########################
@@ -97,4 +98,14 @@ def getLatestOpcr():
         return tokenStatus
 
     userInfos = Sessions.getSessionInfo(request.headers.get('Authorization'))
-    return HeadFunctionalities.getOpcrData(userInfos['userid']) 
+    latestOpcr = HeadFunctionalities.getOpcrData(userInfos['userid'])
+
+    for it, target in enumerate(latestOpcr['targets']):
+        latestOpcr['targets'][it] = Utils.convertToLegacy(target)
+        for ins, success in enumerate(target['success']):
+            latestOpcr['targets'][it]['success'][ins]  = Utils.convertLegacyToString(success, 'oid')
+
+    return {
+        'data': latestOpcr['targets'],
+        'error': None
+    }

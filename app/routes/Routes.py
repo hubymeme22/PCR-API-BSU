@@ -191,7 +191,7 @@ def retrieveSingleOpcr(id):
 
 @app.route('/head/opcr')
 def retrieveUserOPCR():
-    return Head.retrieveUserOPCR()
+    return Head_v2.getLatestOpcr()
 
 @app.route('/head/individual')
 def retrieveIndividualAssigned():
