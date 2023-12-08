@@ -35,25 +35,26 @@ def formatObjectValues(object: dict, idtype='_id'):
 #  CAMPUSES DATABASE FUNCTIONALITIES  #
 #######################################
 class CampusesFunctionalities:
+    def addDepartmentOpcr(campusid: str, officeid: str, opcrid: str):
+        return CampusesConnection.update_one({'_id': ObjectId(campusid), 'offices._id': ObjectId(officeid)}, {
+            '$push': {'offices.$.opcr': ObjectId(opcrid)}
+        })
+
     def getAllCampuses():
         return CampusesConnection.find()
 
     def getCampusDetails(campusid: str):
         return CampusesConnection.find_one({'_id': ObjectId(campusid)})
 
-    def getPmtCampus(pmtid: str) -> dict | None:
+    def getPmtCampus(pmtid: str):
         return CampusesConnection.find_one({
             'pmt': {'$elemMatch': pmtid}
         })
 
-    def getHeadCampus(headid: str) -> dict | None:
-        return CampusesConnection.find_one({
-            'offices': {'$elemMatch': {
-                'head': headid
-            }}
-        })
+    def getHeadCampus(headid: str):
+        return CampusesConnection.find_one({'offices.head': ObjectId(headid)})
 
-    def getHeadOffice(headid: str) -> dict | None:
+    def getHeadOffice(headid: str):
         matchedCampus = CampusesFunctionalities.getHeadCampus(headid)
         for offices in matchedCampus['offices']:
             if (offices['head'] == headid):
@@ -105,7 +106,7 @@ class OPCRFunctionalities:
             'targets': target
         }})
 
-    def createOpcrForUser(userid: str, target: dict) -> dict | None:
+    def createOpcrForUser(userid: str, target: dict):
         return OPCRConnection.insert_one({
             '_id': ObjectId(),
             'targets': [target],
@@ -176,7 +177,7 @@ class AdminFunctionalities:
 class HeadFunctionalities:
     def getOpcrData(userid: str) -> dict:
         return OPCRConnection.find_one({
-            'owner': userid,
+            'owner': ObjectId(userid),
             'archived': False
         })
 
@@ -185,7 +186,7 @@ class HeadFunctionalities:
             'owner': userid
         })
 
-    def appendNewMFO(opcrid: str, mfodata: dict) -> dict:
+    def appendNewMFO(opcrid: str, mfodata: dict):
         opcrData = OPCRFunctionalities.getOneOpcr(opcrid)
         if (opcrData == None): return None
 
@@ -193,7 +194,7 @@ class HeadFunctionalities:
         mfodata['success'] = [formatObjectValues(success, 'oid') for success in mfodata['success']]
         return OPCRFunctionalities.addOneTarget(opcrid, mfodata)
 
-    def createMFO(userid: str, mfodata: dict) -> dict:
+    def createMFO(userid: str, mfodata: dict):
         mfodata = formatObjectValues(mfodata)
         mfodata['success'] = [formatObjectValues(success, 'oid') for success in mfodata['success']]
         return OPCRFunctionalities.createOpcrForUser(userid, mfodata)

@@ -1,4 +1,4 @@
-from app.database.dbConnection import HeadFunctionalities
+from app.database.dbConnection import HeadFunctionalities, CampusesFunctionalities
 from app.modules import Sessions, ErrorGen
 from flask import request
 
@@ -36,13 +36,24 @@ def addMFO():
 
     try:
         if (userOpcr == None):
-            HeadFunctionalities.createMFO(userInfos['userid'], targetValues)
-            return {
-                'updated': True,
-                'data': None,
-                'error': None
-            }
+            latestOpcr = HeadFunctionalities.createMFO(userInfos['userid'], targetValues)
+            campusMatch = CampusesFunctionalities.getHeadCampus(userInfos['userid'])
+            if (campusMatch == None): raise Exception('OpcrOrCampusNotRegistered')
 
+            opcrID = latestOpcr.inserted_id
+            campusID = campusMatch['_id'].__str__()
+
+            for office in campusMatch['offices']:
+                officeId = office['_id'].__str__()
+
+                if ((office.get('head') != None) and
+                    (office.get('head').__str__() == userInfos['userid'])):
+
+                    opcrRegistered = CampusesFunctionalities.addDepartmentOpcr(campusID, officeId, opcrID)
+                    if (opcrRegistered.acknowledged):
+                        return {'created': True, 'error': None}
+
+            raise Exception('MongoError')
         HeadFunctionalities.appendNewMFO(userOpcr['_id'], targetValues)
         return {
             'updated': True,
