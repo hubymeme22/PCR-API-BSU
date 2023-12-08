@@ -207,8 +207,13 @@ def getDepartmentByCampusID(campusid: str):
                 statusCode=404)
 
         campusOffice = campusDetails['offices']
-        campusOffice = [Utils.convertToLegacy(office) for office in campusOffice]
-        return {'data': campusOffice, 'error': None}
+        officesData = []
+        for office in campusOffice:
+            parsedOffice = Utils.convertToLegacy(office)
+            parsedOffice = Utils.convertLegacyToString(parsedOffice, 'head')
+            officesData.append(parsedOffice)
+
+        return {'data': officesData, 'error': None}
 
     except Exception as e:
         return ErrorGen.invalidRequestError(
