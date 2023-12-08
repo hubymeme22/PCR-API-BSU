@@ -43,10 +43,10 @@ class OPCR(Document):
 class _offices(EmbeddedDocument):
     oid = ObjectIdField(required=True, default=ObjectId, unique=True, primary_key=True)
     name = StringField()
-    head = StringField()
+    head = ObjectIdField(required=False, default=ObjectId, unique=True)
     opcr = ListField(StringField())
 
 class Campuses(Document):
     name = StringField()
     offices = ListField(EmbeddedDocumentField(_offices))
-    pmt = ListField(StringField())
+    pmt = ListField(ObjectIdField(default=ObjectId, unique=True))

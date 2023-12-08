@@ -1,4 +1,4 @@
-from app.database.dbConnection import CampusesFunctionalities, HeadFunctionalities, OPCRFunctionalities
+from app.database.dbConnection import HeadFunctionalities
 from app.modules import Sessions, ErrorGen
 from flask import request
 
@@ -79,3 +79,11 @@ def updateMFO(mfoid: str):
         return ErrorGen.invalidRequestError(
             error=str(e),
             statusCode=500)
+
+def getLatestOpcr():
+    tokenStatus = Sessions.requestTokenCheck('head')
+    if (tokenStatus != None):
+        return tokenStatus
+
+    userInfos = Sessions.getSessionInfo(request.headers.get('Authorization'))
+    return HeadFunctionalities.getOpcrData(userInfos['userid']) 

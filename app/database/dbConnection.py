@@ -35,6 +35,12 @@ def formatObjectValues(object: dict, idtype='_id'):
 #  CAMPUSES DATABASE FUNCTIONALITIES  #
 #######################################
 class CampusesFunctionalities:
+    def getAllCampuses():
+        return CampusesConnection.find()
+
+    def getCampusDetails(campusid: str):
+        return CampusesConnection.find_one({'_id': ObjectId(campusid)})
+
     def getPmtCampus(pmtid: str) -> dict | None:
         return CampusesConnection.find_one({
             'pmt': {'$elemMatch': pmtid}
@@ -52,6 +58,37 @@ class CampusesFunctionalities:
         for offices in matchedCampus['offices']:
             if (offices['head'] == headid):
                 return offices
+
+    def createNewCampus(campusData: dict):
+        campusData.update({'_id': ObjectId()})
+        campusData['offices'] = [formatObjectValues(office) for office in campusData['offices']]
+        return CampusesConnection.insert_one(campusData)
+
+    def deleteCampusByID(campusid: str):
+        return CampusesConnection.delete_one({'_id': ObjectId(campusid)})
+
+#######################################
+#  ACCOUNTS DATABASE FUNCTIONALITIES  #
+#######################################
+class AccountDBFunctionalities:
+    def createAccount(accountData: dict):
+        accountData.update({'_id': ObjectId()})
+        return AccountConnection.insert_one(accountData)
+
+    def getAccountsByPermission(permission: str):
+        return AccountConnection.find({'permission': permission})
+
+    def getAllAccounts():
+        return AccountConnection.find()
+
+    def getSpecificAccount(accid: str):
+        return AccountConnection.find_one({'_id': ObjectId(accid)})
+
+    def deleteAccount(accid: str):
+        return AccountConnection.delete_one({'_id': ObjectId(accid)})
+
+    def updateAccount(accid: str, accountData: dict):
+        return AccountConnection.update_one({'_id': accid}, accountData)
 
 ###################################
 #  OPCR DATABASE FUNCTIONALITIES  #
@@ -72,7 +109,7 @@ class OPCRFunctionalities:
         return OPCRConnection.insert_one({
             '_id': ObjectId(),
             'targets': [target],
-            'owner': userid,
+            'owner': ObjectId(userid),
             'archived': False,
             'accepted': False,
             'status': 'in progress'
@@ -88,13 +125,54 @@ class OPCRFunctionalities:
                 { '$set': { 'targets.$': update }},
                 upsert=True)
         except Exception as e:
-            print(e)
             return None
 
+###########################
+#  ADMIN FUNCTIONALITIES  #
+###########################
+class AdminFunctionalities:
+    def assignPmtToCampus(pmtid: str, campusid: str):
+        campusDetails = CampusesFunctionalities.getCampusDetails(campusid)
+        if (campusDetails == None):
+            raise Exception('NonexistentCampus')
 
-###################################
-#  HEAD DATABASE FUNCTIONALITIES  #
-###################################
+        pmtAccount = AccountDBFunctionalities.getSpecificAccount(pmtid)
+        if (pmtAccount == None):
+            raise Exception('NonexistentPMTAccount')
+
+        if (pmtAccount.get('permission') != 'pmt'):
+            raise Exception('PMTPermissionError')
+
+        return CampusesConnection.update_one({'_id': ObjectId(campusid)}, {
+            '$push': { 'pmt': ObjectId(pmtid) }
+        })
+
+    def assignHeadToDepartment(headid: str, campusid: str, officeid: str):
+        campusDetails = CampusesConnection.find_one({
+            '_id': ObjectId(campusid),
+            'offices._id': ObjectId(officeid)
+        })
+
+        if (campusDetails == None):
+            raise Exception('NonexistentCampus')
+
+        pmtAccount = AccountDBFunctionalities.getSpecificAccount(headid)
+        if (pmtAccount == None):
+            raise Exception('NonexistentPMTAccount')
+
+        if (pmtAccount.get('permission') != 'head'):
+            raise Exception('PMTPermissionError')
+
+        return CampusesConnection.update_one({
+            '_id': ObjectId(campusid),
+            'offices._id': ObjectId(officeid)
+        },{
+            '$set': {'offices.$.head': ObjectId(headid)}
+        }, upsert=True)
+
+##########################
+#  HEAD FUNCTIONALITIES  #
+##########################
 class HeadFunctionalities:
     def getOpcrData(userid: str) -> dict:
         return OPCRConnection.find_one({
@@ -129,3 +207,20 @@ class HeadFunctionalities:
 
         headOpcrID = headOpcrData['_id']
         return OPCRFunctionalities.updateMFOByID(headOpcrID, mfoid, mfodata)
+
+#########################
+#  PMT FUNCTIONALITIES  #
+#########################
+class PMTFunctionalities:
+    def getOpcrData(userid: str):
+        campusAssigned = CampusesConnection.find_one({'pmt': userid})
+        if (campusAssigned == None): return []
+
+        # head account retrieval
+        headAccounts = []
+        for office in campusAssigned['offices']:
+            if (office['head'] != ''):
+                headAccounts.append(office['head'])
+
+        # opcr retrieval of all the head accounts
+        return OPCRConnection.find({'owner': {'$in': headAccounts}})

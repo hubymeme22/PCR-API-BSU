@@ -10,7 +10,7 @@
     - Hubert
 '''
 from app.modules import Admin, PMT, Head
-from app.module_v2 import Head_v2
+from app.module_v2 import Admin_v2, Head_v2, PMT_v2
 from flask import make_response, request
 from app import app
 
@@ -28,11 +28,11 @@ def root():
 ############################################
 @app.route('/admin/accounts/', methods=['GET'])
 def adminAccount():
-    return Admin.adminAccount()
+    return Admin_v2.getAllAccounts()
 
 @app.route('/admin/accounts/head')
 def adminHeadAccount():
-    return Admin.adminHeadAccount()
+    return Admin_v2.getAllHeadAccounts()
 
 @app.route('/admin/accounts/head/unassigned')
 def adminUnassignedHeadAccount():
@@ -53,29 +53,28 @@ def adminAssignSuperior(headid, individ):
 # account creation part
 @app.route('/admin/create/pmt', methods=['POST'])
 def adminCreateAccountPMT():
-    return Admin.adminCreateAccountPMT()
+    return Admin_v2.createAccount('pmt')
 
 @app.route('/admin/create/head', methods=['POST'])
 def adminCreateAccountHead():
-    return Admin.adminCreateAccountHead()
+    return Admin_v2.createAccount('head')
 
 @app.route('/admin/create/individual', methods=['POST'])
 def adminCreateAccountIndiv():
-    return Admin.adminCreateAccountIndiv()
-
+    return Admin_v2.createAccount('indiv')
 
 # campus CRUD operation part
 @app.route('/admin/create/campus', methods=['POST'])
 def adminCreateCampus():
-    return Admin.adminCreateCampus()
+    return Admin_v2.createCampus()
 
 @app.route('/admin/campuses')
 def adminCampuses():
-    return Admin.adminGetCampuses()
+    return Admin_v2.getAllCampuses()
 
 @app.route('/admin/departments/<campusid>')
 def adminGetDepartmentsByCampus(campusid):
-    return Admin.adminGetDepartments(campusid)
+    return Admin_v2.getDepartmentByCampusID(campusid)
 
 @app.route('/admin/edit/campus/<id>', methods=['PUT', 'POST'])
 def adminEditCampus(id):
@@ -83,7 +82,7 @@ def adminEditCampus(id):
 
 @app.route('/admin/delete/campus/<id>', methods=['GET', 'DELETE'])
 def adminDeleteCampus(id):
-    return Admin.adminDeleteCampus(id)
+    return Admin_v2.deleteCampusByID(id)
 
 @app.route('/admin/delete/office/<campusid>/<officeid>', methods=['GET', 'DELETE'])
 def adminDeleteDepartment(campusid, officeid):
@@ -92,12 +91,12 @@ def adminDeleteDepartment(campusid, officeid):
 # assign pmt to a campus
 @app.route('/admin/assign/pmt/campus', methods=['POST', 'PUT'])
 def adminAssignPmtCampus():
-    return Admin.adminAssignPmtCampus()
+    return Admin_v2.assignPmtToCampus()
 
 # assign head to a department
 @app.route('/admin/assign/head/campus', methods=['POST', 'PUT'])
 def adminAssignHeadCampus():
-    return Admin.adminAssignHeadCampus()
+    return Admin_v2.assignHeadToDepartment()
 
 # archives all the current opcr
 @app.route('/admin/archive-opcr', methods=['PUT', 'GET'])
@@ -161,7 +160,7 @@ def getPmtOfficeReport():
 
 @app.route('/pmt/office/opcr')
 def getPmtOfficeOPCR():
-    return PMT.getOfficeOPCR()
+    return PMT_v2.getOpcrReport()
 
 @app.route('/pmt/opcr/office/<officeid>')
 def getOpcrByOfficeId(officeid):
@@ -220,3 +219,17 @@ def universalRouteParamChecker():
     if (request.path == '/head/add/mfo' or
         request.path == '/head/update/mfo'):
         return Head_v2.checkAddMfoParams()
+
+    if (request.path == '/admin/create/pmt'  or
+        request.path == '/admin/create/head' or
+        request.path == '/admin/create/indiv'):
+        return Admin_v2.createAccountParamCheck()
+
+    if (request.path == '/admin/create/campus'):
+        return Admin_v2.createCampusParamCheck()
+
+    if (request.path == '/admin/assign/pmt/campus'):
+        return Admin_v2.assignPmtParamCheck()
+
+    if (request.path == '/admin/assign/head/campus'):
+        return Admin_v2.assignHeadToDepartment()

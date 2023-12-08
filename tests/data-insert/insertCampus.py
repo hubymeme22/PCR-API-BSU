@@ -44,7 +44,7 @@ print('[*] Logging in admin account...')
 
 # login admin account to use token permission
 response = re.post(f'{url}/login', json={
-    'email': 'admin',
+    'email': 'admin@g.batstate-u.edu.ph',
     'password': 'admin'
 })
 
@@ -58,4 +58,4 @@ print(f'[+] using token: {response["token"]}')
 
 # loop through campuses to append the campus
 for campusData in sampleCampus:
-    re.post(f'{url}/api/admin/create/campus', json=campusData, cookies={'token': response['token']})
+    re.post(f'{url}/admin/create/campus', json=campusData, cookies={'token': response['token']})
