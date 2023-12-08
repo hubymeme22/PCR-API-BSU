@@ -88,7 +88,13 @@ def createAccount(type: str):
     accountDetails.update({'permission': type})
     try:
         createResponse = AccountDBFunctionalities.createAccount(accountDetails)
-        if (createResponse.acknowledged): return {'created': True, 'error': None}
+        if (createResponse.acknowledged):
+            return {
+                'created': True,
+                'id': createResponse.inserted_id.__str__(),
+                'permission': type,
+                'error': None
+            }
         raise Exception('MongoError')
 
     except Exception as e:
