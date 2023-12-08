@@ -189,7 +189,6 @@ def getAllHeadAccounts():
         accountList = [Utils.convertToLegacy(account) for account in accountList]
         return {'data': accountList, 'error': None}
 
-
     except Exception as e:
         return ErrorGen.invalidRequestError(
             error=str(e),
@@ -212,6 +211,7 @@ def getDepartmentByCampusID(campusid: str):
         for office in campusOffice:
             parsedOffice = Utils.convertToLegacy(office)
             parsedOffice = Utils.convertLegacyToString(parsedOffice, 'head')
+            parsedOffice['opcr'] = [opcr.__str__() for opcr in parsedOffice['opcr']]
             officesData.append(parsedOffice)
 
         return {'data': officesData, 'error': None}
