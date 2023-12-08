@@ -168,6 +168,7 @@ def getAllCampuses():
             for oi, office in enumerate(campus['offices']):
                 campusList[ci]['offices'][oi] = Utils.convertToLegacy(office)
                 campusList[ci]['offices'][oi] = Utils.convertLegacyToString(campusList[ci]['offices'][oi], 'head')
+                campusList[ci]['offices'][oi]['opcr'] = [opcr.__str__() for opcr in campusList[ci]['offices'][oi]['opcr']]
             for pi, pmt in enumerate(campus['pmt']):
                 campusList[ci]['pmt'][pi] = pmt.__str__()
 
