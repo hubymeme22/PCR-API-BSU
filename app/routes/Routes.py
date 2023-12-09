@@ -156,15 +156,11 @@ def getBulkRemarkTemplate(opcrid):
 
 @app.route('/pmt/office/report')
 def getPmtOfficeReport():
-    return PMT.getOfficeReport()
-
-@app.route('/pmt/office/opcr')
-def getPmtOfficeOPCR():
     return PMT_v2.getOpcrReport()
 
 @app.route('/pmt/opcr/office/<officeid>')
 def getOpcrByOfficeId(officeid):
-    return PMT.getOpcrByOfficeID(officeid)
+    return PMT_v2.getOpcrByOfficeId(officeid)
 
 ###########################################
 #   Head functionalities implementation   #

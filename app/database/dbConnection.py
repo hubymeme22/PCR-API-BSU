@@ -46,9 +46,14 @@ class CampusesFunctionalities:
     def getCampusDetails(campusid: str):
         return CampusesConnection.find_one({'_id': ObjectId(campusid)})
 
+    def getCampusDetailsByOfficeId(officeid: str):
+        return CampusesConnection.find_one({
+            'offices._id': ObjectId(officeid)
+        })
+
     def getPmtCampus(pmtid: str):
         return CampusesConnection.find_one({
-            'pmt': {'$elemMatch': pmtid}
+            'pmt': ObjectId(pmtid)
         })
 
     def getHeadCampus(headid: str):
@@ -214,14 +219,24 @@ class HeadFunctionalities:
 #########################
 class PMTFunctionalities:
     def getOpcrData(userid: str):
-        campusAssigned = CampusesConnection.find_one({'pmt': userid})
+        campusAssigned = CampusesConnection.find_one({'pmt': ObjectId(userid)})
         if (campusAssigned == None): return []
 
         # head account retrieval
         headAccounts = []
         for office in campusAssigned['offices']:
-            if (office['head'] != ''):
+            if (office.get('head')):
                 headAccounts.append(office['head'])
 
         # opcr retrieval of all the head accounts
         return OPCRConnection.find({'owner': {'$in': headAccounts}})
+
+    def getOpcrDataByOfficeID(officeid: id):
+        campusAssigned = CampusesFunctionalities.getCampusDetailsByOfficeId(officeid)
+        if (campusAssigned == None): raise Exception('NonexistentOfficeID')
+
+        for office in campusAssigned['offices']:
+            if (office['_id'].__str__() == officeid):
+                opcrId = office['opcr'][-1]
+                return OPCRFunctionalities.getOneOpcr(opcrId.__str__())
+        return None
