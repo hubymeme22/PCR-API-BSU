@@ -99,6 +99,8 @@ def getLatestOpcr():
 
     userInfos = Sessions.getSessionInfo(request.headers.get('Authorization'))
     latestOpcr = HeadFunctionalities.getOpcrData(userInfos['userid'])
+    if (latestOpcr == None):
+        return {'data': [], 'error': None}
 
     for it, target in enumerate(latestOpcr['targets']):
         latestOpcr['targets'][it] = Utils.convertToLegacy(target)
