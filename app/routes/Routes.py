@@ -181,6 +181,10 @@ def updateMFO(mfoid):
 def createBulkMFO():
     return Head.addBulkMFO()
 
+@app.route('/head/delete/mfo/<mfoid>', methods=['DELETE', 'GET'])
+def deleteMFO(mfoid):
+    return Head_v2.deleteMFOById(mfoid)
+
 @app.route('/head/opcr/<id>')
 def retrieveSingleOpcr(id):
     return Head.retrieveSingleOPCR(id)

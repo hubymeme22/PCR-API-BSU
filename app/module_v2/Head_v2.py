@@ -67,6 +67,23 @@ def addMFO():
             error=str(e),
             statusCode=500)
 
+def deleteMFOById(mfoid: str):
+    tokenStatus = Sessions.requestTokenCheck('head')
+    if (tokenStatus != None):
+        return tokenStatus
+
+    try:
+        userInfos = Sessions.getSessionInfo(request.headers.get('Authorization'))
+        deleted = HeadFunctionalities.deleteMFO(userInfos['userid'], mfoid)
+        if (deleted.acknowledged):
+            return {'deleted': True, 'error': None}
+        raise Exception('MongoError')
+
+    except Exception as e:
+        return ErrorGen.invalidRequestError(
+            error=str(e),
+            statusCode=500)
+
 def updateMFO(mfoid: str):
     tokenStatus = Sessions.requestTokenCheck('head')
     if (tokenStatus != None):

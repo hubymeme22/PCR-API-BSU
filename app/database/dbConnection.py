@@ -121,6 +121,11 @@ class OPCRFunctionalities:
             'status': 'in progress'
         })
 
+    def deleteMFOById(opcrid: str, mfoid: str):
+        return OPCRConnection.update_one(
+            {'_id': ObjectId(opcrid)},
+            {'$pull': {'targets': {'_id': ObjectId(mfoid)}}}, True)
+
     def updateMFOByID(opcrid: str, mfoid: str, update: dict):
         try:
             return OPCRConnection.update_many(
@@ -213,6 +218,11 @@ class HeadFunctionalities:
 
         headOpcrID = headOpcrData['_id']
         return OPCRFunctionalities.updateMFOByID(headOpcrID, mfoid, mfodata)
+
+    def deleteMFO(userid: str, mfoid: str):
+        userOpcr = HeadFunctionalities.getOpcrData(userid)
+        if (userOpcr == None): return
+        return OPCRFunctionalities.deleteMFOById(userOpcr['_id'].__str__(), mfoid)
 
 #########################
 #  PMT FUNCTIONALITIES  #
